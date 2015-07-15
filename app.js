@@ -8,6 +8,44 @@ var bodyParser = require('body-parser');
 var routes = require('./routes/index');
 var users = require('./routes/users');
 
+var google = require('googleapis');
+var urlshortener = google.urlshortener('v1');
+var analytics = google.analytics('v3');
+
+var CLIENT_ID = "200067319298-cpblm10r8s9o29kjgtahjek2eib7eigk.apps.googleusercontent.com";
+var CLIENT_SECRET = "nQ4NK9cKoPl8fWXDF9V-PsTU";
+var REDIRECT_URL = "http://localhost:9000/oauth2callback";
+var OAuth2 = google.auth.OAuth2;
+var oauth2Client = new OAuth2(CLIENT_ID, CLIENT_SECRET, REDIRECT_URL);
+
+// Retrieve tokens via token exchange explained above or set them:
+oauth2Client.setCredentials({
+    access_token: 'ya29.sQEthdLUUPQqk-eLq2Pzu8vCcNp3y7_Biz3ZElkrywIkCKhiSBIukKjHoaeu2HYOh8aQ',
+    refresh_token: ''
+});
+
+google.options({ auth: oauth2Client }); // set auth as a global default
+
+var API_KEY = 'AIzaSyDnnN1fL1vkptQQLdTL17pFrnH3XOlDNdo'; // specify your API key here
+var params = { auth: API_KEY, shortUrl: 'http://goo.gl/xKbRu3' };
+
+// get the long url of a shortened url
+urlshortener.url.get(params, function (err, response) {
+   if (err) {
+       console.log('Encountered error', err);
+   } else {
+       console.log('Long url is', response.longUrl);
+   }
+});
+
+analytics.data.ga.get({ids: 'ga:101052384', 'start-date': '30daysAgo', 'end-date':'yesterday', metrics:'ga:uniquePageViews', dimensions:'ga:date,ga:pagePath'}, function(err, response){
+   if (err) {
+       console.log('Encountered error', err);
+   } else {
+       console.log('Long url is', response);
+   }
+})
+
 var app = express();
 
 // view engine setup
