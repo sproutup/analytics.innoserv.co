@@ -28,7 +28,7 @@ var AnalyticsAccount = Bookshelf.Model.extend({
 	tableName: "analytics_account",
 	analyticsAccountSummary: function() {
 		// one-to-many
-		this.hasMany(AnalyticsAccountSummary, "analytics_account_summary_id");
+		this.hasMany(AnalyticsAccountSummary, "id");
 	}
 });
 exports.AnalyticsAccount = AnalyticsAccount;

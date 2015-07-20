@@ -123,8 +123,8 @@ app.use(function(err, req, res, next) {
 });
 
 function Action (){
-    console.log("timeout");
     collections.AnalyticsAccountCollection.forge()
+        .query('where', 'is_valid', '=', '0')
         .fetch()
         .then(function (result) {
             result.each(function(account) {
@@ -136,8 +136,17 @@ function Action (){
                 analytics.management.accountSummaries.list({auth: oauth2Client}, function(err, response){
                     if (err) {
                         console.log('Encountered error', err);
+                        account.set('error_message', err.message);
+                        account.set('is_valid', -1);
+                        account.save();
                     } else {
                         console.log('Summary', response);
+                        account.set('is_valid', 1);
+                        account.save();
+                        var summary = account.analyticsAccountSummary();
+                        summary.add([
+                            {analytics_account_id: response.items[0].id}
+                        ])
                     }
                 })
            })
