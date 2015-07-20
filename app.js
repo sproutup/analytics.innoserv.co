@@ -7,34 +7,13 @@ var bodyParser = require('body-parser');
 
 var routes = require('./routes/index');
 var users = require('./routes/users');
+var collections = require('./models/collections');
 
 var google = require('googleapis');
 var urlshortener = google.urlshortener('v1');
 var analytics = google.analytics('v3');
 
-
 var app = express();
-var dbConfig = {
-    client: 'mysql',
-    connection: {
-        host: 'localhost',
-        user: 'root',
-        password: 'root',
-        database: 'sproutup_db',
-        charset: 'utf8'
-    }
-};
- 
-var knex = require('knex')(dbConfig);
-var bookshelf = require('bookshelf')(knex);
- 
-app.set('bookshelf', bookshelf);
-
-var eventFact = require('./models/event');
-
-//var MyModel = bookshelf.model('MyModel');
-
-
 
 // Dev
 //var CLIENT_ID = "200067319298-cpblm10r8s9o29kjgtahjek2eib7eigk.apps.googleusercontent.com";
@@ -50,10 +29,10 @@ var OAuth2 = google.auth.OAuth2;
 var oauth2Client = new OAuth2(CLIENT_ID, CLIENT_SECRET, REDIRECT_URL);
 
 //Retrieve tokens via token exchange explained above or set them:
- oauth2Client.setCredentials({
-     access_token: 'ya29.swF3k3A-4ZcyWv3EuPNtlci3i00I5Oq0c-SZcF2AS7kK6YRTEj5y2LefNeLidQ4ztzqTaQ',
-     refresh_token: '1/4zz2P5wkWRWx3r3ZKEQBqUKGm3kMGwc2gbzM-w9u0SlIgOrJDtdun6zK6XiATCKT'
- });
+// oauth2Client.setCredentials({
+//     access_token: 'ya29.swF3k3A-4ZcyWv3EuPNtlci3i00I5Oq0c-SZcF2AS7kK6YRTEj5y2LefNeLidQ4ztzqTaQ',
+//     refresh_token: '1/4zz2P5wkWRWx3r3ZKEQBqUKGm3kMGwc2gbzM-w9u0SlIgOrJDtdun6zK6XiATCKT'
+// });
 
 // oauth2Client.setCredentials({
 //     access_token: 'ya29.sgGon90bYdz5e27ODCVWcACRcDPeDl7i8wD1uP8CrdeyDptZ-wMYntfnxfVGXBRbotwZ'
@@ -93,14 +72,6 @@ var params = { auth: API_KEY, shortUrl: 'http://goo.gl/xKbRu3' };
 //        console.log('Long url is', response);
 //    }
 // })
-
-analytics.management.accountSummaries.list({auth: oauth2Client}, function(err, response){
-   if (err) {
-       console.log('Encountered error', err);
-   } else {
-       console.log('Long url is', response);
-   }
-})
 
 
 // view engine setup
@@ -151,5 +122,32 @@ app.use(function(err, req, res, next) {
   });
 });
 
+function Action (){
+    console.log("timeout");
+    collections.AnalyticsAccountCollection.forge()
+        .fetch()
+        .then(function (result) {
+            result.each(function(account) {
+                console.log("account: ", account.get('provider'));
+                oauth2Client.setCredentials({
+                    access_token: account.get('access_token'),
+                    refresh_token: account.get('refresh_token')
+                });
+                analytics.management.accountSummaries.list({auth: oauth2Client}, function(err, response){
+                    if (err) {
+                        console.log('Encountered error', err);
+                    } else {
+                        console.log('Summary', response);
+                    }
+                })
+           })
+        })
+        .catch(function (err) {
+            console.log('error');
+        });
+}
+
+Action();
+setInterval(Action,  60000);
 
 module.exports = app;
