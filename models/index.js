@@ -2,19 +2,6 @@
 
 //var moment = require("moment");
 
-var Knex = require("knex")({
-    client: "mysql",
-    connection: {
-        host: "localhost",
-        user: "root",
-        password: "root",
-        database: "sproutup_db"
-    }
-});
-
-var Bookshelf = require("bookshelf")(Knex);
-Bookshelf.plugin("visibility");
-
 var User = Bookshelf.Model.extend({
 	tableName: "users",
 //	blogpost: function() {
@@ -24,14 +11,7 @@ var User = Bookshelf.Model.extend({
 });
 exports.User = User;
 
-var AnalyticsAccount = Bookshelf.Model.extend({
-	tableName: "analytics_account",
-	analyticsAccountSummary: function() {
-		// one-to-many
-		this.hasMany(AnalyticsAccountSummary, "id");
-	}
-});
-exports.AnalyticsAccount = AnalyticsAccount;
+var analyticsAccount = require("./analyticsAccount.js");
 
 var AnalyticsAccountSummary = Bookshelf.Model.extend({
 	tableName: "analytics_account_summary",

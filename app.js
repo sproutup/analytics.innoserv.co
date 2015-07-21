@@ -5,15 +5,33 @@ var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 
-var routes = require('./routes/index');
-var users = require('./routes/users');
-var collections = require('./models/collections');
-
 var google = require('googleapis');
 var urlshortener = google.urlshortener('v1');
 var analytics = google.analytics('v3');
+var youtubeAnalytics = google.youtubeAnalytics('v1beta1');
 
 var app = express();
+
+var Knex = require("knex")({
+    client: "mysql",
+    connection: {
+        host: "localhost",
+        user: "root",
+        password: "root",
+        database: "sproutup_db"
+    }
+});
+
+var Bookshelf = require("bookshelf")(Knex);
+Bookshelf.plugin("visibility");
+Bookshelf.plugin('registry');
+
+global.Knex = Knex;
+global.Bookshelf = Bookshelf;
+
+var routes = require('./routes/index');
+var users = require('./routes/users');
+require('./models/analyticsAccount');
 
 // Dev
 //var CLIENT_ID = "200067319298-cpblm10r8s9o29kjgtahjek2eib7eigk.apps.googleusercontent.com";
@@ -21,13 +39,17 @@ var app = express();
 //var REDIRECT_URL = "http://localhost:9000/oauth2callback";
 
 // Prod
-var CLIENT_ID = "200067319298-gu6eos6o5cmeaat2tsmlu1s6rk5gjpnd.apps.googleusercontent.com";
-var CLIENT_SECRET = "kN13wxKxV1RuIFsPDnr2Y8H8";
-var REDIRECT_URL = "http://www.sproutup.co/oauth2callback";
+var CLIENT_ID = "200067319298-cpblm10r8s9o29kjgtahjek2eib7eigk.apps.googleusercontent.com";
+var CLIENT_SECRET = "nQ4NK9cKoPl8fWXDF9V-PsTU";
+var REDIRECT_URL = "http://localhost:9000/oauth2callback";
+
+//var CLIENT_ID = "200067319298-gu6eos6o5cmeaat2tsmlu1s6rk5gjpnd.apps.googleusercontent.com";
+//var CLIENT_SECRET = "kN13wxKxV1RuIFsPDnr2Y8H8";
+//var REDIRECT_URL = "http://www.sproutup.co/oauth2callback";
 
 var OAuth2 = google.auth.OAuth2;
 var oauth2Client = new OAuth2(CLIENT_ID, CLIENT_SECRET, REDIRECT_URL);
-
+global.oauth2Client = oauth2Client; 
 //Retrieve tokens via token exchange explained above or set them:
 // oauth2Client.setCredentials({
 //     access_token: 'ya29.swF3k3A-4ZcyWv3EuPNtlci3i00I5Oq0c-SZcF2AS7kK6YRTEj5y2LefNeLidQ4ztzqTaQ',
@@ -42,13 +64,6 @@ var oauth2Client = new OAuth2(CLIENT_ID, CLIENT_SECRET, REDIRECT_URL);
 //     access_token: 'ya29.sgGk80KyWx_bjTcYd6J6WNk2_6qORFEBPacVkDbhOqXIRHEfd_EpIsw11u6SrUkC7nnf',
 //     refresh_token: '1/29EJ6NB7F4IL34je4dveFIs0Lse_mMBZ_Uz11YDJdu5IgOrJDtdun6zK6XiATCKT'
 // });
-
-//oauth2Client.refreshAccessToken(function(err, tokens) {
-//   // your access_token is now refreshed and stored in oauth2Client
-//   // store these new tokens in a safe place (e.g. database)
-//   console.log("err", err);
-//   console.log("tokens", tokens);
-//});
 
 
 google.options({ auth: oauth2Client }); // set auth as a global default
@@ -123,33 +138,17 @@ app.use(function(err, req, res, next) {
 });
 
 function Action (){
-    collections.AnalyticsAccountCollection.forge()
+    console.log("## check for new accounts  ##");
+    var summary = Bookshelf.collection('AnalyticsAccountCollection');
+//    summary.validate();
+    summary.forge()
         .query('where', 'is_valid', '=', '0')
         .fetch()
         .then(function (result) {
             result.each(function(account) {
                 console.log("account: ", account.get('provider'));
-                oauth2Client.setCredentials({
-                    access_token: account.get('access_token'),
-                    refresh_token: account.get('refresh_token')
-                });
-                analytics.management.accountSummaries.list({auth: oauth2Client}, function(err, response){
-                    if (err) {
-                        console.log('Encountered error', err);
-                        account.set('error_message', err.message);
-                        account.set('is_valid', -1);
-                        account.save();
-                    } else {
-                        console.log('Summary', response);
-                        account.set('is_valid', 1);
-                        account.save();
-                        var summary = account.analyticsAccountSummary();
-                        summary.add([
-                            {analytics_account_id: response.items[0].id}
-                        ])
-                    }
-                })
-           })
+                account.validate();                
+          })
         })
         .catch(function (err) {
             console.log('error');
@@ -157,6 +156,6 @@ function Action (){
 }
 
 Action();
-setInterval(Action,  60000);
+setInterval(Action,  10*60000);
 
 module.exports = app;

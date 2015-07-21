@@ -7,11 +7,6 @@ var Users = Model.Bookshelf.Collection.extend({
 });
 exports.UserCollection = Users;
 
-var AnalyticsAccount = Model.Bookshelf.Collection.extend({
-	model: Model.AnalyticsAccount
-});
-exports.AnalyticsAccountCollection = AnalyticsAccount;
-
 var AnalyticsAccountSummary = Model.Bookshelf.Collection.extend({
 	model: Model.AnalyticsAccountSummary
 });
