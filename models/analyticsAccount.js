@@ -44,18 +44,19 @@ var AnalyticsAccount = Bookshelf.Model.extend({
         }
         else{
             console.log("access token still valid");
-            account.updateAccountSummary();
-//            account.updateYoutubeGroups();
+//            account.updateAccountSummary();
+            account.updateYoutubeGroups();
         }
     },
 
     updateYoutubeGroups: function() {
         var model = this;
         console.log('get yt-analytics');
-//        youtubeAnalytics.reports.query({auth: oauth2client}, function(err, data){
-//            console.log('hello');
-//        })
-        youtubeAnalytics.groups.list({auth: oauth2client}, function(err, data){
+        youtubeAnalytics.reports.query({auth: oauth2Client}, function(err, data){
+            console.log('hello', err);
+
+        })
+        youtubeAnalytics.groups.list({auth: oauth2Client}, function(err, data){
             if (err) {
                 console.log('Encountered error', err);
                 model.set('error_message', err.message);
