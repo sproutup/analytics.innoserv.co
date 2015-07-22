@@ -2,7 +2,8 @@ var moment = require('moment');
 var _ = require('underscore');
 var google = require('googleapis');
 var analytics = google.analytics('v3');
-var youtubeAnalytics = google.youtubeAnalytics('v1beta1');
+var youtube = google.youtube('v3');
+var youtubeAnalytics = google.youtubeAnalytics('v1');
 require('./analyticsAccountSummary');
 
 var AnalyticsAccount = Bookshelf.Model.extend({
@@ -52,11 +53,10 @@ var AnalyticsAccount = Bookshelf.Model.extend({
     updateYoutubeGroups: function() {
         var model = this;
         console.log('get yt-analytics');
-        youtubeAnalytics.reports.query({auth: oauth2Client}, function(err, data){
-            console.log('hello', err);
-
-        })
-        youtubeAnalytics.groups.list({auth: oauth2Client}, function(err, data){
+//        youtubeAnalytics.reports.query({auth: oauth2Client}, function(err, data){
+//            console.log('hello', err);
+//        })
+        youtube.channels.list({auth: oauth2Client, part: 'snippet,statistics'}, function(err, data){
             if (err) {
                 console.log('Encountered error', err);
                 model.set('error_message', err.message);
@@ -64,7 +64,7 @@ var AnalyticsAccount = Bookshelf.Model.extend({
                 model.save();
                 return;
             } 
-            console.log('Summary', data);
+            console.log('Youtube channels', data);
         })
     },
 
