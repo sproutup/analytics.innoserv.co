@@ -142,7 +142,7 @@ function Action (){
     var summary = Bookshelf.collection('AnalyticsAccountCollection');
 //    summary.validate();
     summary.forge()
-        .query('where', 'is_valid', '=', '0')
+        //.query('where', 'is_valid', '=', '0')
         .fetch()
         .then(function (result) {
             result.each(function(account) {

@@ -16,7 +16,7 @@ var AnalyticsAccount = Bookshelf.Model.extend({
     },
 
     validate: function() {
-        console.log('validate account', this.get('expires_at'));
+        console.log('validate account', this.get('id'));
         var account = this;
         oauth2Client.setCredentials({
             access_token: this.get('access_token'),
@@ -31,22 +31,24 @@ var AnalyticsAccount = Bookshelf.Model.extend({
                 if(err){
                     console.log('Encountered error', err);
                     account.set('error_message', err.message);
-                    account.set('is_valid', -1);
+                    account.set('is_valid', 0);
                     account.save();
                     return;
                 }
-                
+               
                 console.log("tokens", tokens);
                 account.set('access_token', tokens.access_token);
                 account.set('updated_at', moment().toDate());
                 account.set('expires_at', moment(tokens.expiry_date).toDate());
+                account.set('is_valid', 1);
+                account.set('error_message', '');
                 account.save();
             });
         }
         else{
             console.log("access token still valid");
 //            account.updateAccountSummary();
-            account.updateYoutubeGroups();
+//            account.updateYoutubeGroups();
         }
     },
 
@@ -56,15 +58,52 @@ var AnalyticsAccount = Bookshelf.Model.extend({
 //        youtubeAnalytics.reports.query({auth: oauth2Client}, function(err, data){
 //            console.log('hello', err);
 //        })
-        youtube.channels.list({auth: oauth2Client, part: 'snippet,statistics'}, function(err, data){
+        youtube.channels.list({auth: oauth2Client, part: 'id,snippet,statistics', mine: 'true'}, function(err, data){
             if (err) {
-                console.log('Encountered error', err);
-                model.set('error_message', err.message);
-                model.set('youtube_analytics_api', -1);
-                model.save();
+                console.log('error: ', err.message);
+                //model.set('error_message', err.message);
+                //model.set('youtube_analytics_api', -1);
+                //model.save();
                 return;
             } 
-            console.log('Youtube channels', data);
+            console.log('Youtube channels', data); 
+            _.each(data.items, function(item){
+                console.log('title: ', item.title);
+                var summary = Bookshelf.model('AnalyticsAccountSummary')
+                .forge({
+                    analytics_account_id: model.get('id'),
+                    ga_id: item.id,
+                })
+                .fetch()
+                .then(function(existing) {
+                    console.log('summary found', existing.id);
+                    existing.set({
+                        kind: item.kind,
+                        name: item.snippet.title,
+                        viewCount: item.statistics.viewCount,
+                        followerCount: item.statistics.subscriberCount
+                    })
+                    .save().then(function(){
+                        console.log('updated...');
+                    });
+                })
+                .catch(function(err){
+                    console.log('error: ', err);
+                });
+ 
+//                var summary = Bookshelf.model('AnalyticsAccountSummary')
+//                .forge({
+//                    analytics_account_id: model.get('id'),
+//                    ga_id: item.id,
+//                    kind: item.kind,
+//                    name: item.snippet.title,
+//                    views: item.statistics.viewCount,
+//                    followers: item.statistics.subscriberCount
+//                })
+//                .save().then(function(model) {
+//                    console.log('summary item saved');
+//                });
+            });
         })
     },
 
