@@ -15,6 +15,30 @@ var AnalyticsAccount = Bookshelf.Model.extend({
         this.hasMany('AnalyticsAccountSummary');
     },
 
+    run: function () {
+        console.log("## check for new accounts  ##");
+        Bookshelf.model('AnalyticsAccountCollection')
+            .forge()
+            //.where({is_valid: 0})
+            //.query('where', 'is_valid', '=', '0')
+            .fetch()
+            .then(function (result) {
+                return{
+                    result: result
+                }
+            })
+            .catch(function (err) {
+                console.log('error');
+            });
+    },
+
+    run1: function() {
+        this.run().each(function(account) {
+            console.log("account: ", account.get('provider'));
+            account.validate();                
+        });
+    },
+
     validate: function() {
         console.log('validate account', this.get('id'));
         var account = this;

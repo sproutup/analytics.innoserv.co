@@ -32,6 +32,7 @@ global.Bookshelf = Bookshelf;
 var routes = require('./routes/index');
 var users = require('./routes/users');
 require('./models/analyticsAccount');
+var analytics = require('./app/analytics/analyticsController');
 
 // Dev
 //var CLIENT_ID = "200067319298-cpblm10r8s9o29kjgtahjek2eib7eigk.apps.googleusercontent.com";
@@ -139,23 +140,23 @@ app.use(function(err, req, res, next) {
 
 function Action (){
     console.log("## check for new accounts  ##");
-    var summary = Bookshelf.collection('AnalyticsAccountCollection');
-//    summary.validate();
-    summary.forge()
-        //.query('where', 'is_valid', '=', '0')
-        .fetch()
-        .then(function (result) {
-            result.each(function(account) {
-                console.log("account: ", account.get('provider'));
-                account.validate();                
-          })
-        })
-        .catch(function (err) {
-            console.log('error');
-        });
+//    Bookshelf.model('AnalyticsAccount').forge.run1();
+//    var summary = Bookshelf.collection('AnalyticsAccountCollection');
+//    summary.forge()
+//        //.query('where', 'is_valid', '=', '0')
+//        .fetch()
+//        .then(function (result) {
+//            result.each(function(account) {
+//                console.log("account: ", account.get('provider'));
+//                account.validate();                
+//          })
+//        })
+//        .catch(function (err) {
+//            console.log('error');
+//        });
 }
 
 Action();
-setInterval(Action,  10*60000);
+setInterval(analytics.validateAll(),  10*60000);
 
 module.exports = app;
