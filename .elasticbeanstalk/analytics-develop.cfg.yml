@@ -1,0 +1,29 @@
+EnvironmentConfigurationMetadata:
+  Description: Messaging server standard configuration.
+  DateModified: '1434116451000'
+  DateCreated: '1434116451000'
+AWSConfigurationTemplateVersion: 1.1.0.0
+EnvironmentTier:
+  Name: WebServer
+  Type: Standard
+SolutionStack: 64bit Amazon Linux 2015.03 v1.4.1 running Docker 1.6.0
+OptionSettings:
+  aws:elasticbeanstalk:command:
+    BatchSize: '30'
+    BatchSizeType: Percentage
+  aws:autoscaling:asg:
+    MinSize: 1
+    MaxSize: 2
+  aws:autoscaling:launchconfiguration:
+    IamInstanceProfile: aws-elasticbeanstalk-ec2-role
+    EC2KeyName: endurance
+    InstanceType: t2.micro
+    SecurityGroups: webserver
+  aws:elasticbeanstalk:environment:
+    EnvironmentType: LoadBalanced
+  aws:elasticbeanstalk:application:environment:
+    MYSQLHOST: AKIAJM5X5NV444LJEUSA
+    MYSQLUSER: dbadmin
+    MYSQLPASSWORD: 1nter$Tellar
+    MYSQLDATABASE: sproutup_db
+

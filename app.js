@@ -12,13 +12,20 @@ var youtubeAnalytics = google.youtubeAnalytics('v1beta1');
 
 var app = express();
 
+var mysqlHost = process.env.MYSQLHOST || 'localhost';
+var mysqlUser = process.env.MYSQLUSER || "root";
+var mysqlPassword = process.env.MYSQLPASSWORD || "root";
+var mysqlDatabase = process.env.MYSQLDATABASE || "sproutup_db";
+
+console.log("config: ", mysqlHost, mysqlUser, mysqlDatabase );
+
 var Knex = require("knex")({
     client: "mysql",
     connection: {
-        host: "localhost",
-        user: "root",
-        password: "root",
-        database: "sproutup_db"
+        host: mysqlHost,
+        user: mysqlUser,
+        password: mysqlPassword,
+        database: mysqlDatabase
     }
 });
 

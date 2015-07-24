@@ -1,0 +1,10 @@
+branch-defaults:
+  develop:
+    environment: messaging-develop
+global:
+  application_name: develop
+  default_ec2_keyname: endurance
+  default_platform: docker
+  default_region: us-west-2
+  profile: null
+  sc: git
