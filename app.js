@@ -138,25 +138,10 @@ app.use(function(err, req, res, next) {
   });
 });
 
-function Action (){
-    console.log("## check for new accounts  ##");
-//    Bookshelf.model('AnalyticsAccount').forge.run1();
-//    var summary = Bookshelf.collection('AnalyticsAccountCollection');
-//    summary.forge()
-//        //.query('where', 'is_valid', '=', '0')
-//        .fetch()
-//        .then(function (result) {
-//            result.each(function(account) {
-//                console.log("account: ", account.get('provider'));
-//                account.validate();                
-//          })
-//        })
-//        .catch(function (err) {
-//            console.log('error');
-//        });
-}
+// validate every 30 min
+setInterval(analytics.validateAll(),  30*60000);
 
-Action();
-setInterval(analytics.validateAll(),  10*60000);
+// update every hour
+setInterval(analytics.updateAll(),    1*3600000);
 
 module.exports = app;

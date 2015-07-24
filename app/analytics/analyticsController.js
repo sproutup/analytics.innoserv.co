@@ -1,4 +1,3 @@
-
 /**
  * Module dependencies.
  */
@@ -14,7 +13,7 @@ require('../../models/analyticsAccount');
  */
 
 module.exports.validateAll = function (){
-    console.log("## check for new accounts  ##");
+    console.log("## validate all accounts ##");
     Bookshelf.collection('AnalyticsAccountCollection')
         .forge()
         //.where({is_valid: 0})
@@ -22,8 +21,24 @@ module.exports.validateAll = function (){
         .fetch()
         .then(function (result) {
             result.each(function(item){
-                console.log('got it', item.id);
                 item.validate();
+            });
+        })
+    .catch(function (err) {
+        console.log('error');
+    });
+};
+
+module.exports.updateAll = function (){
+    console.log("## update all accounts  ##");
+    Bookshelf.collection('AnalyticsAccountCollection')
+        .forge()
+        //.where({is_valid: 0})
+            //.query('where', 'is_valid', '=', '0')
+        .fetch()
+        .then(function (result) {
+            result.each(function(item){
+               item.update();
             });
         })
     .catch(function (err) {

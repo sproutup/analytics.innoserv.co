@@ -15,7 +15,7 @@ var AnalyticsAccount = Bookshelf.Model.extend({
         this.hasMany('AnalyticsAccountSummary');
     },
 
-    run: function () {
+    getAll: function () {
         console.log("## check for new accounts  ##");
         Bookshelf.model('AnalyticsAccountCollection')
             .forge()
@@ -32,11 +32,20 @@ var AnalyticsAccount = Bookshelf.Model.extend({
             });
     },
 
-    run1: function() {
-        this.run().each(function(account) {
-            console.log("account: ", account.get('provider'));
-            account.validate();                
+    update: function() {
+        oauth2Client.setCredentials({
+            access_token: this.get('access_token'),
+            refresh_token: this.get('refresh_token')
         });
+
+        console.log("update account: ", this.id);
+        if(this.get('google_analytics_api') == 1) {
+            this.updateAccountSummary();
+        } 
+        if(this.get('youtube_analytics_api') == 1) {
+            console.log("youtube");
+            this.updateYoutubeChannels();
+        } 
     },
 
     validate: function() {
@@ -71,20 +80,18 @@ var AnalyticsAccount = Bookshelf.Model.extend({
         }
         else{
             console.log("access token still valid");
-//            account.updateAccountSummary();
-//            account.updateYoutubeGroups();
-        }
+       }
     },
 
-    updateYoutubeGroups: function() {
+    updateYoutubeChannels: function() {
         var model = this;
-        console.log('get yt-analytics');
+        console.log('get yt-analytics', this.id, this.get("youtube_analytics_api") );
 //        youtubeAnalytics.reports.query({auth: oauth2Client}, function(err, data){
 //            console.log('hello', err);
 //        })
-        youtube.channels.list({auth: oauth2Client, part: 'id,snippet,statistics', mine: 'true'}, function(err, data){
+       youtube.channels.list({auth: oauth2Client, part: 'id,snippet,statistics', mine: 'true'}, function(err, data){
             if (err) {
-                console.log('error: ', err.message);
+                console.log('youtube error: ', err.message, this.id);
                 //model.set('error_message', err.message);
                 //model.set('youtube_analytics_api', -1);
                 //model.save();
@@ -92,27 +99,48 @@ var AnalyticsAccount = Bookshelf.Model.extend({
             } 
             console.log('Youtube channels', data); 
             _.each(data.items, function(item){
-                console.log('title: ', item.title);
-                var summary = Bookshelf.model('AnalyticsAccountSummary')
+                console.log('title: ', item);
+                Bookshelf.model('AnalyticsAccountSummary')
                 .forge({
                     analytics_account_id: model.get('id'),
                     ga_id: item.id,
                 })
-                .fetch()
+                .fetch({require: true})
                 .then(function(existing) {
                     console.log('summary found', existing.id);
                     existing.set({
+                        is_valid: 1,
                         kind: item.kind,
                         name: item.snippet.title,
-                        viewCount: item.statistics.viewCount,
-                        followerCount: item.statistics.subscriberCount
+                        view_count: item.statistics.viewCount,
+                        follower_count: item.statistics.subscriberCount
                     })
                     .save().then(function(){
                         console.log('updated...');
                     });
                 })
                 .catch(function(err){
-                    console.log('error: ', err);
+                    console.log('create new youtube channel: ', err);
+                    Bookshelf.model('AnalyticsAccountSummary')
+                    .forge({
+                        analytics_account_id: model.get('id'),
+                        is_valid: 1,
+                        kind: item.kind,
+                        name: item.snippet.title,
+                        view_count: item.statistics.viewCount,
+                        follower_count: item.statistics.subscriberCount,
+                        ga_id: item.id
+                    })
+                    .save()
+                    .then(function(existing) {
+                        console.log('channel saved', existing.id);
+                        existing.set({
+                       })
+                    })
+                    .catch(function(err){
+                        console.log('channel save failed: ', err);
+                    });
+ 
                 });
  
 //                var summary = Bookshelf.model('AnalyticsAccountSummary')
@@ -131,32 +159,91 @@ var AnalyticsAccount = Bookshelf.Model.extend({
         })
     },
 
-    updateAccountSummary: function() {
+    updateAccountSummary: function(callback) {
+
+        callback = (typeof callback === 'function') ? callback : function() {};
+
         var account = this;
+        var error_message = "";
+        var error = {};
+        console.log("## update account summary ##");
         analytics.management.accountSummaries.list({auth: oauth2Client}, function(err, response){
             if (err) {
-                console.log('Encountered error', err);
-                account.set('error_message', err.message);
-                account.set('is_valid', -1);
-                account.save();
-            } else {
-                console.log('Summary', response);
-                account.set('is_valid', 1);
-                account.set('username', response.username);
-                account.save();
-               
+                console.log('error: ', err.errors[0].message, account.id);
+                error = err;
+                error_message = err.errors[0].message;
+                Bookshelf.model('AnalyticsAccountSummary')
+                    .forge({
+                        analytics_account_id: account.get('id'),
+                        is_valid: 0,
+                        kind: 'analytics#accountSummary'
+                    })
+                    .fetch({require: true})
+                    .then(function(item){
+                        console.log('updating summary error', error_message);
+                        item.set({
+                            error_message: error_message,
+                        })
+                        .save()
+                        .then(function(model) {
+                            console.log('updated error message');
+                            callback(error, null);
+                        });
+                    })
+                    .catch(function (err) {
+                        console.log('creating summary error', error_message);
+                        Bookshelf.model('AnalyticsAccountSummary')
+                        .forge({
+                            analytics_account_id: account.get('id'),
+                            is_valid: 0,
+                            kind: 'analytics#accountSummary',
+                            error_message: error_message
+                        })
+                        .save()
+                        .then(function(model) {
+                            console.log('created error message');
+                            callback(error, null);
+                        });
+ 
+                    });
+           } else {
+                console.log('Summary # of item', response.items.length);
+              
                 _.each(response.items, function(item){ 
-                     var summary = Bookshelf.model('AnalyticsAccountSummary')
+                    console.log("summary name: ", item.name, item.id);
+                    Bookshelf.model('AnalyticsAccountSummary')
                     .forge({
                         analytics_account_id: account.get('id'),
                         ga_id: item.id,
-                        kind: item.kind,
-                        name: item.name
                     })
-                    .save().then(function(model) {
-                        console.log('summary item saved');
+                    .fetch({require: true})
+                    .then(function(model){
+                        model.set({
+                            is_valid: 1,
+                            kind: item.kind,
+                            name: item.name
+                        }).save().then(function(model){
+                            console.log('summary updated');
+                        });
+                    })
+                    .catch(function (err) {
+                        Bookshelf.model('AnalyticsAccountSummary')
+                        .forge({
+                            analytics_account_id: account.get('id'),
+                            ga_id: item.id,
+                            name: item.name,
+                            is_valid: 1,
+                            kind: item.kind,
+                            error_message: ""
+                        })
+                        .save()
+                        .then(function(model) {
+                            console.log('summary created');
+                        }); 
                     });
-                })
+               })
+
+               callback(null, "ok");
             }
         })
     }
