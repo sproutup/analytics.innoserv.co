@@ -7,16 +7,31 @@ configuration = analytics
 domain = sproutup-co
 
 
-all: deploy
+all: install
+	PORT=3002 nodemon bin/www
+
+install:
+	npm install
 
 master:
 	$(eval environment_name := master)
 
 deploy: init
-	eb deploy
+	eb deploy $(application_name)-$(environment_name)
 
 init:
 	eb init -r $(region) -p $(platform) -k $(keypair) $(environment_name)
+
+open: init
+	eb open
+
+# Returns logs for the specified or default environment
+logs: init
+	eb logs
+
+# Retrieves all logs and saves them to the .elasticbeanstalk/logs directory
+logsall:
+	eb logs -a
 
 recreate: terminate create
 

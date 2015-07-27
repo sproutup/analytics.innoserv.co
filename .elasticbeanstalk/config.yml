@@ -1,6 +1,6 @@
 branch-defaults:
   develop:
-    environment: messaging-develop
+    environment: analytics-develop
 global:
   application_name: develop
   default_ec2_keyname: endurance

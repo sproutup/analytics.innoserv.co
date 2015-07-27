@@ -4,13 +4,18 @@ var analytics = google.analytics('v3');
 
 var AnalyticsAccountSummary = Bookshelf.Model.extend({
     tableName: "analytics_account_summary",
-    hasTimestamps: true
+    hasTimestamps: true,
 //    analyticsAccount: function() {
 //        // one-to-many         
 //        this.belongsTo(AnalyticsAccount, "analytics_account_id");
 //    },
 
+    createOrUpdate: function(callback){
+        return callback(null);
+    }
 });
+
+
 //module.exports.AnalyticsAccountSummary = AnalyticsAccountSummary;
 module.exports = Bookshelf.model('AnalyticsAccountSummary', AnalyticsAccountSummary);
 

@@ -1,5 +1,5 @@
 EnvironmentConfigurationMetadata:
-  Description: Messaging server standard configuration.
+  Description: Analytics server standard configuration.
   DateModified: '1434116451000'
   DateCreated: '1434116451000'
 AWSConfigurationTemplateVersion: 1.1.0.0
@@ -22,8 +22,9 @@ OptionSettings:
   aws:elasticbeanstalk:environment:
     EnvironmentType: LoadBalanced
   aws:elasticbeanstalk:application:environment:
-    MYSQLHOST: AKIAJM5X5NV444LJEUSA
+    PORT: 3000
+    MYSQLHOST: sproutupdev.ctdo662vilif.us-west-2.rds.amazonaws.com:3306
     MYSQLUSER: dbadmin
     MYSQLPASSWORD: 1nter$Tellar
-    MYSQLDATABASE: sproutup_db
+    MYSQLDATABASE: sproutup_master
 

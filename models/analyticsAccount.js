@@ -48,7 +48,12 @@ var AnalyticsAccount = Bookshelf.Model.extend({
         } 
     },
 
-    validate: function() {
+    validate: function(callback) {
+        
+        callback = (typeof callback === 'function') ? callback : function() {};
+
+        var self = this;
+        
         console.log('validate account', this.get('id'));
         var account = this;
         oauth2Client.setCredentials({
@@ -66,24 +71,29 @@ var AnalyticsAccount = Bookshelf.Model.extend({
                     account.set('error_message', err.message);
                     account.set('is_valid', 0);
                     account.save();
-                    return;
+                    callback(err);
                 }
+                else{
                
-                console.log("tokens", tokens);
-                account.set('access_token', tokens.access_token);
-                account.set('updated_at', moment().toDate());
-                account.set('expires_at', moment(tokens.expiry_date).toDate());
-                account.set('is_valid', 1);
-                account.set('error_message', '');
-                account.save();
+                    console.log("tokens", tokens);
+                    account.set('access_token', tokens.access_token);
+                    account.set('updated_at', moment().toDate());
+                    account.set('expires_at', moment(tokens.expiry_date).toDate());
+                    account.set('is_valid', 1);
+                    account.set('error_message', '');
+                    account.save().then(function(){
+                        callback(null, 'saved')
+                    });
+                }
             });
         }
         else{
             console.log("access token still valid");
+            callback(null, 'valid token');
        }
     },
 
-    updateYoutubeChannels: function() {
+    updateYoutubeChannels: function(callback) {
         var model = this;
         console.log('get yt-analytics', this.id, this.get("youtube_analytics_api") );
 //        youtubeAnalytics.reports.query({auth: oauth2Client}, function(err, data){
@@ -163,10 +173,14 @@ var AnalyticsAccount = Bookshelf.Model.extend({
 
         callback = (typeof callback === 'function') ? callback : function() {};
 
+        var self = this;
         var account = this;
         var error_message = "";
         var error = {};
         console.log("## update account summary ##");
+
+
+
         analytics.management.accountSummaries.list({auth: oauth2Client}, function(err, response){
             if (err) {
                 console.log('error: ', err.errors[0].message, account.id);
