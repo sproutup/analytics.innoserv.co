@@ -8,9 +8,11 @@ var config = require('../config'),
   chalk = require('chalk'),
   path = require('path');
 
-var knex = require('knex')(config.knex);
+var knex = require('knex')(config.db.knex);
+global.knex = knex;
 
 var bookshelf = require('bookshelf')(knex);
+global.bookshelf = bookshelf;
 
 bookshelf.plugin('visibility');
 bookshelf.plugin('registry');
@@ -18,9 +20,10 @@ bookshelf.plugin('registry');
 // Load the models
 module.exports.loadModels = function () {
   // Globbing model files
+  console.log('models: ');
   config.files.server.models.forEach(function (modelPath) {
-    console.log('list: ', modelPath);
-      require(path.resolve(modelPath))(bookshelf);
+    console.log(modelPath);
+    require(path.resolve(modelPath));//(bookshelf);
   });
 };
 
@@ -28,10 +31,15 @@ module.exports.loadModels = function () {
 module.exports.connect = function (cb) {
   var _this = this;
   console.log('init knex');
-  flyway.migrate(function(err, data){
-    if(err) cb(err);
-    cb(err);
-  });
+  if(config.flyway){
+    flyway.migrate(function(err, data){
+      if(err) cb(err);
+      cb(err);
+    });
+  }
+  else{
+    cb(null);
+  }
 };
 
 module.exports.disconnect = function (cb) {

@@ -19,5 +19,6 @@ module.exports = {
   sessionKey: 'sessionId',
   sessionCollection: 'sessions',
   logo: 'modules/core/img/brand/logo.png',
-  favicon: 'modules/core/img/brand/favicon.ico'
+  favicon: 'modules/core/img/brand/favicon.ico',
+  flyway: false
 };

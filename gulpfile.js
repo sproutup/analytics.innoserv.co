@@ -114,6 +114,35 @@ gulp.task('less', function () {
 });
 
 // Mocha tests task
+gulp.task('peter', function (done) {
+  // Open mongoose connections
+  var mongoose = require('./config/lib/mongoose.js');
+  var error;
+
+  // Connect mongoose
+  //mongoose.connect(function() {
+    // Run the tests
+    return gulp.src(testAssets.tests.server)
+      .pipe(plugins.debug())
+      .pipe(plugins.mocha())
+      .on('error', function (err) {
+        // If an error occurs, save it
+        console.log('error', err);
+        error = err;
+      })
+      .on('end', function() {
+        console.log('end mocha');
+        // When the tests are done, disconnect mongoose and pass the error state back to gulp
+    //    mongoose.disconnect(function() {
+    //      done(error);
+    //    });
+      });
+//  });
+
+});
+
+
+// Mocha tests task
 gulp.task('mocha', function (done) {
   // Open mongoose connections
   var mongoose = require('./config/lib/mongoose.js');

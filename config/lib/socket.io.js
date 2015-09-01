@@ -61,10 +61,10 @@ module.exports = function (app, db) {
   var io = socketio.listen(server);
 
   // Create a MongoDB storage object
-  var mongoStore = new MongoStore({
-    mongooseConnection: db.connection,
-    collection: config.sessionCollection
-  });
+//  var mongoStore = new MongoStore({
+//    mongooseConnection: db.connection,
+//    collection: config.sessionCollection
+//  });
 
   // Intercept Socket.io's handshake request
   io.use(function (socket, next) {
@@ -74,21 +74,21 @@ module.exports = function (app, db) {
       var sessionId = socket.request.signedCookies['connect.sid'];
 
       // Use the mongoStorage instance to get the Express session information
-      mongoStore.get(sessionId, function (err, session) {
-        // Set the Socket.io session information
-        socket.request.session = session;
-
-        // Use Passport to populate the user details
-        passport.initialize()(socket.request, {}, function () {
-          passport.session()(socket.request, {}, function () {
-            if (socket.request.user) {
-              next(null, true);
-            } else {
-              next(new Error('User is not authenticated'), false);
-            }
-          });
-        });
-      });
+//      mongoStore.get(sessionId, function (err, session) {
+//        // Set the Socket.io session information
+//        socket.request.session = session;
+//
+//        // Use Passport to populate the user details
+//        passport.initialize()(socket.request, {}, function () {
+//          passport.session()(socket.request, {}, function () {
+//            if (socket.request.user) {
+//              next(null, true);
+//            } else {
+//              next(new Error('User is not authenticated'), false);
+//            }
+//          });
+//        });
+//      });
     });
   });
 

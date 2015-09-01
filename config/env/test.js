@@ -10,7 +10,20 @@ module.exports = {
       pass: ''
     },
     // Enable mongoose debug mode
-    debug: process.env.MONGODB_DEBUG || false
+    debug: process.env.MONGODB_DEBUG || false,
+    knex: {
+      client: 'mysql',
+      connection: {
+        host: '127.0.0.1',
+        user: 'root',
+        password: 'root',
+        database: 'sproutup_db'
+      },
+      pool: {
+        min: 2,
+        max: 10
+      }  
+    }
   },
   port: process.env.PORT || 3001,
   app: {

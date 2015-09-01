@@ -118,11 +118,11 @@ module.exports.initSession = function (app, db) {
     cookie: {
       maxAge: config.sessionExpiration
     },
-    key: config.sessionKey,
-    store: new MongoStore({
-      mongooseConnection: db.connection,
-      collection: config.sessionCollection
-    })
+    key: config.sessionKey,    
+//    store: new MongoStore({
+//      mongooseConnection: db.connection,
+//      collection: config.sessionCollection
+//    })
   }));
 };
 

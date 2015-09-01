@@ -10,7 +10,8 @@ var config = require('../config'),
   chalk = require('chalk');
 
 // Initialize Models
-mongoose.loadModels();
+//mongoose.loadModels();
+bookshelf.loadModels();
 
 //SeedDB
 if (config.seedDB) {
@@ -24,8 +25,10 @@ module.exports.loadModels = function loadModels() {
 
 module.exports.init = function init(callback) {
   
-  bookshelf.connect(function (err, data){
-    console.log('bookshelf connected'); 
+  bookshelf.connect(function (db){
+    console.log('bookshelf connected');
+    var app = express.init(db);
+    if(callback) callback(app, db, config);
   });
   
 //  mongoose.connect(function (db) {
