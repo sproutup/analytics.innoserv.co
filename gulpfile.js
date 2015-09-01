@@ -116,11 +116,12 @@ gulp.task('less', function () {
 // Mocha tests task
 gulp.task('peter', function (done) {
   // Open mongoose connections
-  var mongoose = require('./config/lib/mongoose.js');
+  var bookshelf = require('./config/lib/bookshelf.js');
   var error;
 
+  bookshelf.loadModels();
   // Connect mongoose
-  //mongoose.connect(function() {
+  bookshelf.connect(function() {
     // Run the tests
     return gulp.src(testAssets.tests.server)
       .pipe(plugins.debug())
@@ -133,11 +134,11 @@ gulp.task('peter', function (done) {
       .on('end', function() {
         console.log('end mocha');
         // When the tests are done, disconnect mongoose and pass the error state back to gulp
-    //    mongoose.disconnect(function() {
-    //      done(error);
-    //    });
+        bookshelf.disconnect(function() {
+          done(error);
+        });
       });
-//  });
+  });
 
 });
 
