@@ -12,7 +12,7 @@ var knex = require('knex')(config.db.knex);
 global.knex = knex;
 
 var bookshelf = require('bookshelf')(knex);
-global.bookshelf = bookshelf;
+module.exports.bookshelf = bookshelf;
 
 bookshelf.plugin('visibility');
 bookshelf.plugin('registry');

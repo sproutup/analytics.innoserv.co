@@ -11,7 +11,7 @@
 
 var chai = require('chai');
 var config = require('../../../../config/config'); 
-var bookshelf = require('../../../../config/lib/bookshelf'); 
+var bookshelf = require('../../../../config/lib/bookshelf').bookshelf; 
 chai.config.includeStack = true;
  
 global.expect = chai.expect;
