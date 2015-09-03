@@ -1,3 +1,5 @@
+'use strict';
+
 var moment = require('moment');
 var _ = require('underscore');
 var google = require('googleapis');
@@ -5,10 +7,12 @@ var analytics = google.analytics('v3');
 var youtube = google.youtube('v3');
 var youtubeAnalytics = google.youtubeAnalytics('v1');
 //require('./analyticsAccountSummary');
-var Bookshelf = require('../../../config/lib/bookshelf').bookshelf; 
+var Bookshelf = require('../../../config/lib/bookshelf').bookshelf;
+var oauth2Client = null;
+var account = null;
 
 var AnalyticsAccount = Bookshelf.Model.extend({
-    tableName: "analytics_account",
+    tableName: 'analytics_account',
     hasTimestamps: true,
 
     analyticsAccountSummary: function() {
@@ -17,7 +21,7 @@ var AnalyticsAccount = Bookshelf.Model.extend({
     },
 
     getAll: function () {
-        console.log("## check for new accounts  ##");
+        console.log('## check for new accounts  ##');
         Bookshelf.model('AnalyticsAccountCollection')
             .forge()
             //.where({is_valid: 0})
@@ -26,7 +30,7 @@ var AnalyticsAccount = Bookshelf.Model.extend({
             .then(function (result) {
                 return{
                     result: result
-                }
+                };
             })
             .catch(function (err) {
                 console.log('error');
@@ -39,12 +43,14 @@ var AnalyticsAccount = Bookshelf.Model.extend({
             refresh_token: this.get('refresh_token')
         });
 
-        console.log("update account: ", this.id);
-        if(this.get('google_analytics_api') == 1) {
+        console.log('update account: ', this.id);
+
+        if(this.get('google_analytics_api') === 1) {
             this.updateAccountSummary();
-        } 
-        if(this.get('youtube_analytics_api') == 1) {
-            console.log("youtube");
+        }
+
+        if(this.get('youtube_analytics_api') === 1) {
+            console.log('youtube');
             this.updateYoutubeChannels();
         } 
     },
@@ -76,27 +82,27 @@ var AnalyticsAccount = Bookshelf.Model.extend({
                 }
                 else{
                
-                    console.log("tokens", tokens);
+                    console.log('tokens', tokens);
                     account.set('access_token', tokens.access_token);
                     account.set('updated_at', moment().toDate());
                     account.set('expires_at', moment(tokens.expiry_date).toDate());
                     account.set('is_valid', 1);
                     account.set('error_message', '');
                     account.save().then(function(){
-                        callback(null, 'saved')
+                        callback(null, 'saved');
                     });
                 }
             });
         }
         else{
-            console.log("access token still valid");
+            console.log('access token still valid');
             callback(null, 'valid token');
        }
     },
 
     updateYoutubeChannels: function(callback) {
         var model = this;
-        console.log('get yt-analytics', this.id, this.get("youtube_analytics_api") );
+        console.log('get yt-analytics', this.id, this.get('youtube_analytics_api') );
 //        youtubeAnalytics.reports.query({auth: oauth2Client}, function(err, data){
 //            console.log('hello', err);
 //        })
@@ -146,7 +152,7 @@ var AnalyticsAccount = Bookshelf.Model.extend({
                     .then(function(existing) {
                         console.log('channel saved', existing.id);
                         existing.set({
-                       })
+                       });
                     })
                     .catch(function(err){
                         console.log('channel save failed: ', err);
@@ -167,7 +173,7 @@ var AnalyticsAccount = Bookshelf.Model.extend({
 //                    console.log('summary item saved');
 //                });
             });
-        })
+        });
     },
 
     updateAccountSummary: function(callback) {
@@ -176,9 +182,9 @@ var AnalyticsAccount = Bookshelf.Model.extend({
 
         var self = this;
         var account = this;
-        var error_message = "";
+        var error_message = '';
         var error = {};
-        console.log("## update account summary ##");
+        console.log('## update account summary ##');
 
 
 
@@ -225,7 +231,7 @@ var AnalyticsAccount = Bookshelf.Model.extend({
                 console.log('Summary # of item', response.items.length);
               
                 _.each(response.items, function(item){ 
-                    console.log("summary name: ", item.name, item.id);
+                    console.log('summary name: ', item.name, item.id);
                     Bookshelf.model('AnalyticsAccountSummary')
                     .forge({
                         analytics_account_id: account.get('id'),
@@ -249,18 +255,18 @@ var AnalyticsAccount = Bookshelf.Model.extend({
                             name: item.name,
                             is_valid: 1,
                             kind: item.kind,
-                            error_message: ""
+                            error_message: ''
                         })
                         .save()
                         .then(function(model) {
                             console.log('summary created');
                         }); 
                     });
-               })
+               });
 
-               callback(null, "ok");
+               callback(null, 'ok');
             }
-        })
+        });
     }
 });
 //module.exports.AnalyticsAccount = AnalyticsAccount;
@@ -276,9 +282,9 @@ var AnalyticsAccountCollection = Bookshelf.Collection.extend({
         .fetch()
         .then(function (result) {
             result.each(function(account) {
-                console.log("account: ", account.get('provider'));
+                console.log('account: ', account.get('provider'));
                 account.validate();                
-          })
+          });
         })
         .catch(function (err) {
             console.log('error');
@@ -306,8 +312,8 @@ function validateAccessToken() {
             var summary = account.analyticsAccountSummary();
             summary.add([
                 {analytics_account_id: response.items[0].id}
-            ])
+            ]);
         }
-    })
+    });
 }
 

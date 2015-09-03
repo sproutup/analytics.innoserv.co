@@ -4,8 +4,9 @@
  * Module dependencies.
  */
 var path = require('path'),
-//  bookshelf = require('./config/lib/bookshelf'),
-  AnalyticsAccountCollection = bookshelf.model('AnalyticsAccountCollection'),
+  bookshelf = require('config/lib/bookshelf').bookshelf,
+  AnalyticsAccount = bookshelf.model('AnalyticsAccount'),
+  AnalyticsAccounts = bookshelf.collection('AnalyticsAccountCollection'),
   mongoose = require('mongoose'),
   Article = mongoose.model('Article'),
   errorHandler = require(path.resolve('./modules/core/server/errors.controller'));
@@ -76,7 +77,7 @@ exports.delete = function (req, res) {
  * List of AnalyticsAccounts
  */
 exports.list = function (req, res) {
-  AnalyticsAccountCollection
+  AnalyticsAccounts
     .forge()
     .fetch()
     .then(function(result){
