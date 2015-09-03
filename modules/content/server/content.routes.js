@@ -10,4 +10,7 @@ module.exports = function (app) {
   // Articles collection routes
   app.route('/api/content') //.all(articlesPolicy.isAllowed)
     .get(content.list);
+
+  app.route('/api/content/init') //.all(articlesPolicy.isAllowed)
+    .get(content.init);
 };

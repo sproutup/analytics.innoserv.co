@@ -24,4 +24,20 @@ exports.list = function (req, res) {
   });
 };
 
+/**
+ * Add all content to the queue
+ */
+exports.init = function (req, res) {
+  Contents.forge()
+    .fetch()
+    .then(function (collection) {
+      res.json({error: false, data: collection.toJSON()});
+    })
+    .catch(function (err) {
+      return res.status(400).send({
+        message: errorHandler.getErrorMessage(err)
+      });
+  });
+};
+
 
