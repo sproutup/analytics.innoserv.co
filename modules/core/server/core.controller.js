@@ -1,5 +1,56 @@
 'use strict';
 
+var config = require('config/config'),
+  redis = require('config/lib/redis'),
+  content = require('modules/content/server/content.controller'),
+  twitter = require('./twitter');
+
+// Return url type
+function getUrlType(_url) {
+  var regTweet = /^https:\/\/twitter\.com\/(\w+)\/status\/(.+)$/;
+  var regFacebookPost = /^https:\/\/www\.facebook\.com\/([^\/]+)\/posts\/(\d+)$/;
+  var regYouTubeVideo = /^https:\/\/www\.youtube\.com\/watch\?v=([-\w]+)$/;
+  var regUrl = /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/;
+
+  //var self = this;
+  var type = 'unknown';
+
+  if(regTweet.test(_url)){
+    type = 'tweet';
+    twitter.process(_url);
+  }
+  else if(regFacebookPost.test(_url)){
+    type = 'facebook';
+  }
+  else if(regYouTubeVideo.test(_url)){
+    type = 'youtube';
+  }
+  else if(regUrl.test(_url)){
+    type = 'url';
+  }
+
+  return {
+    type: type
+  };
+}
+
+/**
+ * Process 
+ */
+exports.process = function () {
+  console.log('processing');
+  redis.lpop('queue:content').then(function(item){
+    redis.rpush('queue:content', item);
+    redis.hmget('content:'+item, 'url').then(function(url){
+      console.log('content: ' + item + ' ' + getUrlType(url).type + ':' + url);
+      var type = getUrlType(url);
+      redis.hmset('content:'+item, 'timestamp',  Date.now());
+    });
+  })
+  .catch(function (err) {
+  });
+};
+
 /**
  * Render the main application page
  */
