@@ -6,6 +6,7 @@
 var config = require('../config'),
   mongoose = require('./mongoose'),
   bookshelf = require('./bookshelf'),
+  redis = require('./redis'),
   express = require('./express'),
   chalk = require('chalk');
 

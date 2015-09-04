@@ -1,7 +1,7 @@
 'use strict';
 
 var moment = require('moment');
-var _ = require('underscore');
+var _ = require('lodash');
 var google = require('googleapis');
 var analytics = google.analytics('v3');
 var youtube = google.youtube('v3');
