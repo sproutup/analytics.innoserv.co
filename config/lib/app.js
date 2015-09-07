@@ -32,7 +32,7 @@ module.exports.init = function init(callback) {
     var app = express.init(db);
 
     // process data in intervals
-    setInterval(core.process,  1*1000);
+    setInterval(core.process,  1*15000);
 
     if(callback) callback(app, db, config);
   });

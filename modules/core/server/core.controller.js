@@ -6,7 +6,7 @@ var config = require('config/config'),
   twitter = require('./twitter');
 
 // Return url type
-function getUrlType(_url) {
+function getUrlType(_url, callback) {
   var regTweet = /^https:\/\/twitter\.com\/(\w+)\/status\/(.+)$/;
   var regFacebookPost = /^https:\/\/www\.facebook\.com\/([^\/]+)\/posts\/(\d+)$/;
   var regYouTubeVideo = /^https:\/\/www\.youtube\.com\/watch\?v=([-\w]+)$/;
@@ -17,7 +17,8 @@ function getUrlType(_url) {
 
   if(regTweet.test(_url)){
     type = 'tweet';
-    twitter.process(_url);
+    var arr = regTweet.exec(_url);
+    twitter.process(arr[2], callback);
   }
   else if(regFacebookPost.test(_url)){
     type = 'facebook';
@@ -29,9 +30,7 @@ function getUrlType(_url) {
     type = 'url';
   }
 
-  return {
-    type: type
-  };
+  callback(null, type);
 }
 
 /**
@@ -42,9 +41,9 @@ exports.process = function () {
   redis.lpop('queue:content').then(function(item){
     redis.rpush('queue:content', item);
     redis.hmget('content:'+item, 'url').then(function(url){
-      console.log('content: ' + item + ' ' + getUrlType(url).type + ':' + url);
-      var type = getUrlType(url);
-      redis.hmset('content:'+item, 'timestamp',  Date.now());
+      getUrlType(url, function(err, data){
+        redis.hmset('content:'+item, 'timestamp',  Date.now());
+      });
     });
   })
   .catch(function (err) {
