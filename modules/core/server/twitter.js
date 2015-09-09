@@ -6,13 +6,21 @@ var T = require('config/lib/twitter');
 // statuses/retweets/631208737580019712
 
 
-exports.process = function(id, callback){
-  console.log('twitter handler: ' + id);
+exports.process = function(item, callback){
+  console.log('twitter handler: ' + item.id);
 
-  T.get('statuses/show', { id: id }, function(err, data, response) {
+  var date = new Date(item.timestamp);
+  if(Date.now() >  date + 3600 * 1000){
+      console.log('its time');
+  }
+  else{
+      console.log('its not time');
+  }
+
+  T.get('statuses/show', { id: item.id }, function(err, data, response) {
       if(err) {
           console.log('twitter err: ' + err);
-          callback(err);
+          return callback(err);
       }
       
       console.log('twitter success: ', data.user.followers_count);

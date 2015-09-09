@@ -6,7 +6,7 @@ var config = require('config/config'),
   twitter = require('./twitter');
 
 // Return url type
-function getUrlType(_url, callback) {
+function getUrlType(item, callback) {
   var regTweet = /^https:\/\/twitter\.com\/(\w+)\/status\/(.+)$/;
   var regFacebookPost = /^https:\/\/www\.facebook\.com\/([^\/]+)\/posts\/(\d+)$/;
   var regYouTubeVideo = /^https:\/\/www\.youtube\.com\/watch\?v=([-\w]+)$/;
@@ -15,18 +15,18 @@ function getUrlType(_url, callback) {
   //var self = this;
   var type = 'unknown';
 
-  if(regTweet.test(_url)){
+  if(regTweet.test(item.url)){
     type = 'tweet';
-    var arr = regTweet.exec(_url);
-    twitter.process(arr[2], callback);
+    item.id = regTweet.exec(item.url)[2];
+    twitter.process(item, callback);
   }
-  else if(regFacebookPost.test(_url)){
+  else if(regFacebookPost.test(item.url)){
     type = 'facebook';
   }
-  else if(regYouTubeVideo.test(_url)){
+  else if(regYouTubeVideo.test(item.url)){
     type = 'youtube';
   }
-  else if(regUrl.test(_url)){
+  else if(regUrl.test(item.url)){
     type = 'url';
   }
 
@@ -38,13 +38,22 @@ function getUrlType(_url, callback) {
  */
 exports.process = function () {
   console.log('processing');
-  redis.lpop('queue:content').then(function(item){
-    redis.rpush('queue:content', item);
-    redis.hmget('content:'+item, 'url').then(function(url){
-      getUrlType(url, function(err, data){
-        redis.hmset('content:'+item, 'timestamp',  Date.now());
-      });
-    });
+  redis.lpop('queue:content').then(function(id){
+    redis.rpush('queue:content', id);
+    redis.hgetall('content:'+id).then(function(result){
+      console.log('result:',new Date(parseInt(result.timestamp,10)));
+      var date = new Date(parseInt(result.timestamp,10));
+      console.log('date now', Date.now() - (date.getTime()+(60*1000)));
+      if(Date.now() >  (date.getTime() + (60 * 1000)) ){
+        console.log('its time');
+        getUrlType(result, function(err, data){
+          redis.hmset('content:'+id, 'timestamp',  Date.now());
+        });
+      }
+      else{
+        console.log('its not time');
+      }
+   });
   })
   .catch(function (err) {
   });
