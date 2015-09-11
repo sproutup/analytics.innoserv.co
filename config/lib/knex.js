@@ -9,14 +9,8 @@ var config = require('../config'),
   path = require('path');
 
 var knex = require('knex')(config.db.knex);
-global.knex = knex;
 
-var bookshelf = require('bookshelf')(knex);
-module.exports.bookshelf = bookshelf;
 module.exports.knex = knex;
-
-bookshelf.plugin('visibility');
-bookshelf.plugin('registry');
 
 // Load the models
 module.exports.loadModels = function () {

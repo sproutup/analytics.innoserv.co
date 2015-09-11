@@ -33,7 +33,7 @@ module.exports = {
       'modules/*/client/*.js',
       'modules/*/client/**/*.js'
     ],
-    views: ['modules/*/client/views/**/*.html']
+    views: ['modules/*/client/**/*.views.html']
   },
   server: {
     gruntConfig: 'gruntfile.js',

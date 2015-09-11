@@ -1,17 +1,44 @@
 'use strict';
 
-var Bookshelf = require('../../../config/lib/bookshelf').bookshelf; 
+var knex = require('config/lib/knex').knex,
+  redis = require('config/lib/redis');
 
-var Content = Bookshelf.Model.extend({
-    tableName: 'content',
-    hasTimestamps: true
-});
+var Content = function() {
+//  this.firstName = firstName;
+};
 
-module.exports = Bookshelf.model('Content', Content);
+Content.prototype.get = function(id){
+  console.log('get content', id);
+};
 
-var ContentCollection = Bookshelf.Collection.extend({
-    model: Content
-});
+Content.prototype.sayHello = function(){
+  console.log('Hello, Im ' + this.firstName);
+};
 
-module.exports = Bookshelf.collection('ContentCollection', ContentCollection);
+Content.findAll = function (){
+  console.log('findAll()');
+  return knex.select('*')
+    .from('content')
+    .then(function(data){return data;});
 
+/*    .then(function(data) {
+      return callback(null, data);
+    })
+    .catch(function(err){
+      return callback(err);
+    }); */
+};
+
+Content.get = function(id){
+  var key = 'content:' + id;
+  console.log(key);
+  redis.exists(key).then(function(result){
+    console.log('##exists: ', result);
+    redis.hmget(key, 'url')
+      .then(function(url){
+        console.log('url:', url);
+      });
+  });
+};
+
+module.exports = Content;

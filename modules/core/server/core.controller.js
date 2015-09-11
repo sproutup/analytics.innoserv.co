@@ -3,6 +3,7 @@
 var config = require('config/config'),
   redis = require('config/lib/redis'),
   content = require('modules/content/server/content.controller'),
+  Content = require('modules/content/server/content.model'),
   twitter = require('./twitter');
 
 // Return url type
@@ -40,11 +41,20 @@ exports.process = function () {
   console.log('processing');
   redis.lpop('queue:content').then(function(id){
     redis.rpush('queue:content', id);
+    Content.get(id);
     redis.hgetall('content:'+id).then(function(result){
-      console.log('result:',new Date(parseInt(result.timestamp,10)));
-      var date = new Date(parseInt(result.timestamp,10));
-      console.log('date now', Date.now() - (date.getTime()+(60*1000)));
-      if(Date.now() >  (date.getTime() + (60 * 1000)) ){
+      var date;
+      console.log(result.timestamp);
+      if(typeof result.timestamp === 'undefined'){
+        date = Date.now() - (6 * 60 * 1000);
+        console.log('first date', date);
+      }
+      else{
+        console.log('date:',new Date(parseInt(result.timestamp,10)));
+        date = new Date(parseInt(result.timestamp,10));
+        console.log('date now', Date.now() - (date.getTime()+(60*1000)));
+      }
+      if( Date.now() >  (/*date.getTime() +*/ (5 * 60 * 1000)) ){
         console.log('its time');
         getUrlType(result, function(err, data){
           redis.hmset('content:'+id, 'timestamp',  Date.now());
@@ -56,6 +66,15 @@ exports.process = function () {
    });
   })
   .catch(function (err) {
+  });
+};
+
+/**
+ * Check if there is new content
+ */
+exports.updateContentList = function() {
+  content.update(function(err, result){
+  
   });
 };
 
