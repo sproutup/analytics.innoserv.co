@@ -13,6 +13,15 @@ var P = require('bluebird');
 var Content = require('./content.model');
 var ContentP = P.promisifyAll(Content);
 
+
+/**
+ * Show the current content item
+ */
+exports.read = function (req, res) {
+  res.json(req.content);
+};
+
+
 /**
  * List of Content
  */
@@ -22,7 +31,7 @@ exports.list = function (req, res) {
 //    res.json({error: false, data: data});
 //  });
 
-  ContentP.findAll()
+  Content.findAll()
     .then(function(data){
       res.json({error: false, data: data});
     })
@@ -229,3 +238,31 @@ exports.process = function () {
   });
 };
 
+/**
+ * Content middleware
+ */
+exports.contentByID = function (req, res, next, id) {
+
+  Content.get(id).then(function(result){
+    req.content = result;
+    next();
+  });
+
+//  if (!mongoose.Types.ObjectId.isValid(id)) {
+//    return res.status(400).send({
+//      message: 'Article is invalid'
+//    });
+//  }
+//
+//  Article.findById(id).populate('user', 'displayName').exec(function (err, article) {
+//    if (err) {
+//      return next(err);
+//    } else if (!article) {
+//      return res.status(404).send({
+//        message: 'No article with that identifier has been found'
+//      });
+//    }
+//    req.article = article;
+//    next();
+//  });
+};
