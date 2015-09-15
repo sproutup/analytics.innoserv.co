@@ -7,6 +7,7 @@ var config = require('../config'),
   mongoose = require('./mongoose'),
   bookshelf = require('./bookshelf'),
   redis = require('./redis'),
+  googleapi = require('./googleapi'),
   express = require('./express'),
   chalk = require('chalk'),
   core = require('modules/core/server/core.controller');
