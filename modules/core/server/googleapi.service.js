@@ -2,12 +2,11 @@
 
 var moment = require('moment');
 var _ = require('underscore');
-var google = require('googleapis');
-var analytics = google.analytics('v3');
-var youtube = google.youtube('v3');
+var googleapi = require('config/lib/googleapi');
+//var analytics = google.analytics('v3');
+//var youtube = google.youtube('v3');
 
 var GoogleService = function() {
-  this.data = {id: -1};
 };
 
 GoogleService.validate = function(){
