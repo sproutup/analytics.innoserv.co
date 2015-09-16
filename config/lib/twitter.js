@@ -1,12 +1,14 @@
 'use strict';
 
 var Twit = require('twit'),
+    chalk = require('chalk'),
   config = require('config/config');
 
-console.log('clientID', config.twitter.clientID);
-console.log('clientSecret', config.twitter.clientSecret);
-console.log('accessID', config.twitter.accessID);
-console.log('accessSecret', config.twitter.accessSecret);
+console.log('--');
+console.log(chalk.green('Twitter API'));
+console.log(chalk.green('clientID:\t', config.twitter.clientID));
+console.log(chalk.green('accessID:\t', config.twitter.accessID));
+console.log('--');
 
 var T = new Twit({
   consumer_key:         config.twitter.clientID,
