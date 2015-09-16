@@ -26,6 +26,7 @@ function getUrlType(item, callback) {
   }
   else if(regYouTubeVideo.test(item.url)){
     type = 'youtube';
+    //youtube.process();
   }
   else if(regUrl.test(item.url)){
     type = 'url';
@@ -54,7 +55,7 @@ exports.process = function () {
         date = new Date(parseInt(result.timestamp,10));
         console.log('date now', Date.now() - (date.getTime()+(60*1000)));
       }
-      if( Date.now() >  (/*date.getTime() +*/ (5 * 60 * 1000)) ){
+      if( Date.now() >  (date.getTime() + (5 * 60 * 1000)) ){
         console.log('its time');
         getUrlType(result, function(err, data){
           redis.hmset('content:'+id, 'timestamp',  Date.now());
@@ -73,8 +74,7 @@ exports.process = function () {
  * Check if there is new content
  */
 exports.updateContentList = function() {
-  content.update(function(err, result){
-  
+  content.update().then(function(result){
   });
 };
 

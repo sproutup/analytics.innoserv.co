@@ -80,10 +80,10 @@ exports.init = function (req, res) {
 /**
  * Add new content to the queue
  */
-exports.addLatestContent = function (latest_id, callback) {
+exports.addLatestContent = function (latest_id) {
   var _self = this;
 
-  knex.select('id').from('content')
+  return knex.select('id').from('content')
     .where('id', '>', latest_id)
     .orderBy('id', 'asc')
     .limit(10)
@@ -92,8 +92,7 @@ exports.addLatestContent = function (latest_id, callback) {
     })
     .then(function(array){
       if(array.length > 0){
-//        redis.hmset('content:' + item.id, 'url', item.url, 'timestamp', Date.now());
-        console.log('array: ', array);
+        console.log('found new content: ', array);
         redis.lpush('queue:content', array);
         // last element
         return array[array.length - 1];
@@ -106,34 +105,16 @@ exports.addLatestContent = function (latest_id, callback) {
       if(res > 0){
         var key = 'content:queue:latest';
         redis.set(key, res);
-        callback(null, res);
+        return res;
       }
       else{
-        callback(null, -1);
+        return -1;
       }
-      return;
     })
     .catch(function(err){
       // todo
     });
 };
-
-//`  bookshelf.collection('ContentCollection')
-//`    .forge()
-//`    .where('id', '>', -1)
-//`    .fetch()
-//`    .then(function (collection) {
-//`      redis.del('queue:content');
-//`      collection.each(function(item){
-//`        redis.del('content:'+item.get('id'));
-//`        redis.hmset('content:'+item.get('id'), 'url', item.get('url'), 'timestamp', Date.now());
-//`        redis.lpush('queue:content', item.get('id'));
-//`      });
-//`      callback(null);
-//`    })
-//`    .catch(function (err) {
-//`      callback(err);
-//`    });
 
 /*
  *
@@ -148,39 +129,34 @@ exports.setLatestContentId = function(id, callback){
 /*
  *
  */
-exports.getLatestContentId = function(callback){
+exports.getLatestContentId = function(){
   var key = 'content:queue:latest';
-  redis.get(key, function(err, result){
-    if(err){
-      console.log(err);
-      redis.set(key, -1);
-      callback(null, '-1');
-      return;
-    }
-    else{
-      console.log('latest: ', result);
-      if(result === null || result === '-1'){
-        redis.set(key, '-1');
-        callback(null, '-1');
-      }
-      else{        
-        callback(null, result);
-      }
-    }
-  });
+  return redis.get(key)
+      .then(function(result){
+        if (result === null){
+            return -1;
+        }
+        else{
+            return result;
+        }
+      });
 };
 
 /**
  * Update content queue
  */
-exports.update = function(callback){
+exports.update = function(){
   var _self = this;
-  console.log('updating content queue...');
-  _self.getLatestContentId(function(err, result){
-    _self.addLatestContent(result, function(err, result){
-      console.log('content result:', result);
-    });
-  });
+  return _self.getLatestContentId()
+      .then(_self.addLatestContent)
+      .then(function(result){
+        return result;
+      });
+//  _self.getLatestContentId(function(err, result){
+//    _self.addLatestContent(result, function(err, result){
+//      console.log('content result:', result);
+//    });
+//  });
 //    Contents.forge()
 //      .where('id', '>', 10)
 //      .fetch()
@@ -189,7 +165,7 @@ exports.update = function(callback){
 //          console.log('item: ', item.id);
 //        });
 //      });
-    callback(null);
+//    callback(null);
 //  });
 };
 
