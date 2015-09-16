@@ -8,16 +8,12 @@ var //articlesPolicy = require('../policies/articles.server.policy'),
 
 module.exports = function (app) {
   // Articles collection routes
-  app.route('/api/analytics/account')//.all(articlesPolicy.isAllowed)
-    .get(account.list)
-    .post(account.create);
+	app.route('/api/analytics/account')//.all(articlesPolicy.isAllowed)
+		.get(account.list);
 
-  // Single article routes
-//  app.route('/api/articles/:articleId')//.all(articlesPolicy.isAllowed)
-//    .get(articles.read)
-//    .put(articles.update)
-//    .delete(articles.delete);
+	app.route('/api/analytics/account/:accountId')//.all(articlesPolicy.isAllowed)
+		.get(account.read);
 
-  // Finish by binding the article middleware
-  //app.param('accountId', account.accountByID);
+    // Finish by binding the article middleware
+	app.param('accountId', account.accountById);
 };
