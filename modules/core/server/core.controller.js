@@ -74,8 +74,7 @@ exports.process = function () {
  * Check if there is new content
  */
 exports.updateContentList = function() {
-  content.update(function(err, result){
-  
+  content.update().then(function(result){
   });
 };
 
