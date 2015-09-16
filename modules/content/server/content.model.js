@@ -1,7 +1,8 @@
 'use strict';
 
 var knex = require('config/lib/knex').knex,
-  redis = require('config/lib/redis');
+  redis = require('config/lib/redis'),
+  _ = require('lodash');
 
 var Content = function() {
   this.data = {id: -1};
@@ -21,6 +22,20 @@ Content.key = function(id){
   return key;
 };
 
+Content.prototype.update = function(){
+  var _self = this;
+  console.log('updating: ', _self.data.id);
+  return knex('content')
+    .where('id', _self.data.id)
+    .update(_.pick(_self.data, ['url', 'updated_at']));
+};
+
+Content.prototype.insert = function(){
+  var _self = this;
+  return knex('content')
+    .insert(_.omit(_self.data, ['id', 'timestamp', 'product_trial_id']));
+};
+
 Content.prototype.setCache = function(){
   var _self = this;
   return redis.hmset('content:' + this.data.id, _self.data)
@@ -33,7 +48,7 @@ Content.prototype.loadFromCache = function(id){
   var _self = this;
   return redis.hgetall('content:' + id)
     .then(function(result){
-      console.log('getCache:', result);
+      console.log('getCache:', result.id);
       _self.data = result;
       return result;
     });
