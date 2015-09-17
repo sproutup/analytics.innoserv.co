@@ -2,7 +2,9 @@
 
 var Twit = require('twit'),
     chalk = require('chalk'),
-  config = require('config/config');
+    /* global -Promise */
+    Promise = require('bluebird'),
+    config = require('config/config');
 
 console.log('--');
 console.log(chalk.green('Twitter API'));
@@ -17,4 +19,4 @@ var T = new Twit({
   access_token_secret:  config.twitter.accessSecret
 });
 
-module.exports = T;
+module.exports = Promise.promisifyAll(T);
