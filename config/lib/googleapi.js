@@ -2,7 +2,9 @@
 
 var config = require('config/config'),
   chalk = require('chalk'),
-  google = require('googleapis');
+  google = require('googleapis'),
+  /* global -Promise */
+  Promise = require('bluebird');
 
 
 console.log('--');
@@ -28,12 +30,10 @@ var oauth2client = new OAuth2(
 
 //global.oauth2Client = oauth2Client; 
 
-module.exports = oauth2client;
+module.exports = Promise.promisifyAll(oauth2client);
 
 //Retrieve tokens via token exchange explained above or set them:
 // oauth2Client.setCredentials({
 //     access_token: 'ya29.swF3k3A-4ZcyWv3EuPNtlci3i00I5Oq0c-SZcF2AS7kK6YRTEj5y2LefNeLidQ4ztzqTaQ',
 //     refresh_token: '1/4zz2P5wkWRWx3r3ZKEQBqUKGm3kMGwc2gbzM-w9u0SlIgOrJDtdun6zK6XiATCKT'
 // });
-
-
