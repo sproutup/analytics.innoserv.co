@@ -3,7 +3,9 @@
 /**
  * Module dependencies.
  */
-var config = require('../config'),
+/* global -Promise */
+var Promise = require('bluebird'),
+  config = require('../config'),
   mongoose = require('./mongoose'),
   bookshelf = require('./bookshelf'),
   redis = require('./redis'),

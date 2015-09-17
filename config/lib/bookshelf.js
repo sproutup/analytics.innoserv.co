@@ -23,7 +23,7 @@ module.exports.loadModels = function () {
   // Globbing model files
   console.log('models: ');
   config.files.server.models.forEach(function (modelPath) {
-    console.log(modelPath);
+//    console.log(modelPath);
     require(path.resolve(modelPath));//(bookshelf);
   });
 };

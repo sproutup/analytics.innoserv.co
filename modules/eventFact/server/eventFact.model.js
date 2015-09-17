@@ -1,6 +1,8 @@
 'use strict';
 
 var knex = require('config/lib/knex').knex,
+  bookshelf = require('config/lib/bookshelf').bookshelf,
+  _ = require('lodash'),
   redis = require('config/lib/redis');
 
 var EventFact = function() {
@@ -23,10 +25,8 @@ EventFact.key = function(id){
 
 EventFact.prototype.setCache = function(){
   var _self = this;
-  return redis.hmset('content:' + this.data.id, _self.data)
-    .then(function(result){
-      return _self;
-    });
+  console.log('this cache', this);
+  return redis.incrby('analytics:content:' + this.data.content_id + ':views', _self.data.counter);
 };
 
 EventFact.prototype.loadFromCache = function(id){
@@ -56,14 +56,30 @@ EventFact.prototype.loadFromDB = function(id){
     });
 };
 
-EventFact.prototype.save = function(){
+EventFact.prototype.insert = function(status){
   var _self = this;
+  console.log('this', this);
+  console.log('insert:', status[0].user);
+
+  _self.data = {
+    counter : status[0].user.followers_count,
+    date_dim_id : 260,
+    user_id : 1,
+    provider_dim_id : 3, // twitter:
+    metrics_dim_id : 4 // followers 
+  };
+
   return knex('event_fact')
-    .insert(_self.data)
+    .insert(_.omit(_self.data, ['id']))
+    .then(_self.setCache)
     .then(function(result){ 
-      console.log('saved:', result);
+      console.log('saved:', _self.content_id);
       _self.data.id = result[0];
       return _self.data.id;
+    })
+    .catch(function(err){
+      console.log('event fact err: ' + err);
+      return err;
     });
 };
 
@@ -72,6 +88,29 @@ EventFact.findAll = function (callback){
   return knex.select('*')
     .from('content')
     .nodeify(callback);
+};
+
+EventFact.insert = function(data){
+
+  var item = new EventFact();
+
+  item.data = data;
+
+  return knex('event_fact')
+    .insert(_.omit(item.data, ['id']))
+    .then(function(res){
+      item.setCache();
+      return res;
+    })
+    .then(function(result){ 
+      console.log('saved:', result);
+      item.data.id = result[0];
+      return item;
+    })
+    .catch(function(err){
+      console.log('event fact err: ' + err);
+      return err;
+    });
 };
 
 
