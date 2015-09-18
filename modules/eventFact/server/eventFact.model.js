@@ -25,7 +25,6 @@ EventFact.key = function(id){
 
 EventFact.prototype.setCache = function(){
   var _self = this;
-  console.log('this cache', this);
   return redis.incrby('analytics:content:' + this.data.content_id + ':views', _self.data.counter);
 };
 
