@@ -19,8 +19,8 @@ var TwitterService = function(){
 TwitterService.init = function(){
   console.log('twitter service init');
   Promise.join( 
-      TwitterService.quotaStatusesShowReset(), 
-      TwitterService.quotaStatusesRetweetsReset(),
+//      TwitterService.quotaStatusesShowReset(), 
+//      TwitterService.quotaStatusesRetweetsReset(),
       function(statuses, retweets){
         setInterval(TwitterService.quotaStatusesShowReset, moment.duration(15, 'm').asMilliseconds());
         setInterval(TwitterService.quotaStatusesRetweetsReset, moment.duration(15, 'm').asMilliseconds());
@@ -88,7 +88,7 @@ TwitterService.processStatus = function(item) {
       else{
         return TwitterService.quotaStatusesShowDecr()
           .then(function(val){
-            console.log('statuses quota: ', val);
+            console.log('statuses show quota: ', val);
             // ups we are out of quota
             if(val<1){
               console.log('-- suspend statuses show, quota used: ', val);
@@ -142,16 +142,15 @@ TwitterService.processRetweets = function(item){
               else{
                 var data = TwitterService.extractEvent(status);
                 data.content_id = item.id; 
+                data.product_id = item.product_id;
+                data.user_id = item.user_id;
+                console.log('..new retweet: ', item.status_id);
                 return EventFact.insert(data)
                   .then(function(next){
                     return TwitterService.setFlag(status.id);
                   });
               }         
             });
-        })
-        .then(function(next){
-          console.log('len: ', next.length);
-          return next;
         })
         .catch(function(err){
           console.log('twitter err: ' + err);

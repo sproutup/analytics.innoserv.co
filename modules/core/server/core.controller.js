@@ -32,7 +32,7 @@ function getUrlType(item, callback) {
   else if(regUrl.test(item.url)){
     type = 'url';
   }
-
+  console.log('type:', type);
   callback(null, type);
 }
 
@@ -60,11 +60,9 @@ exports.process = function () {
         console.log('next: ', next.fromNow());
         if( moment().isAfter(next) ){
           getUrlType(result, function(err, data){
-            redis.hmset('content:'+id, 'next',  moment().add(0,'m').valueOf());
+            // wait 15 min before check for new analytics
+            redis.hmset('content:'+id, 'next',  moment().add(15,'m').valueOf());
           });
-        }
-        else{
-          console.log('its not time');
         }
      });
     });

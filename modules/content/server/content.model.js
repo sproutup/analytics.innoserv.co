@@ -48,7 +48,7 @@ Content.prototype.loadFromCache = function(id){
   var _self = this;
   return redis.hgetall('content:' + id)
     .then(function(result){
-      console.log('getCache:', result.id);
+      //console.log('getCache:', result.id);
       _self.data = result;
       return result;
     });
@@ -61,13 +61,16 @@ Content.prototype.checkCache = function(id){
 
 Content.prototype.loadFromDB = function(id){
   var _self = this;
+  console.log('id: ', id);
   return knex('content')
-    .where('id', id)
+    .leftOuterJoin('open_graph', 'content.open_graph_id', '=', 'open_graph.id')
+    .where('content.id', id)
+    .select('content.id as id', 'content.url as url', 'content.created_at as created_at', 'content.user_id as user_id', 'content.product_id as product_id', 'title', 'description', 'image', 'video')
     .first()
     .then(function(result){ 
       console.log('load from DB: ', result);
       _self.data = result;
-      return _self;
+      return result;
     });
 };
 
@@ -77,7 +80,6 @@ Content.findAll = function (callback){
     .from('content')
     .nodeify(callback);
 };
-
 
 /*
  * try to load from from cache otherwise load from DB
