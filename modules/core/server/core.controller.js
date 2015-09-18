@@ -40,28 +40,36 @@ function getUrlType(item, callback) {
  * Process 
  */
 exports.process = function () {
-  redis.lpop('queue:content').then(function(id){
-    redis.rpush('queue:content', id);
-    Content.get(id);
-    redis.hgetall('content:'+id).then(function(result){
-      var next = moment().subtract(1, 'm');
-//      console.log(result);
-
-      if(typeof result.next !== 'undefined'){
-        next = moment(parseInt(result.next, 10));
-        //last = moment(result.next);
-      }
-
-      console.log('next: ', next.fromNow());
-      if( moment().isAfter(next) ){
-        getUrlType(result, function(err, data){
-          redis.hmset('content:'+id, 'next',  moment().add(0,'m').valueOf());
-        });
-      }
-      else{
-        console.log('its not time');
-      }
-   });
+  redis.llen('queue:content').then(function(val){
+    if(val===0){
+      return val;
+    }
+    else{
+      redis.lpop('queue:content').then(function(id){
+      redis.rpush('queue:content', id);
+      Content.get(id);
+      redis.hgetall('content:'+id).then(function(result){
+        var next = moment().subtract(1, 'm');
+  //      console.log(result);
+  
+        if(typeof result.next !== 'undefined'){
+          next = moment(parseInt(result.next, 10));
+          //last = moment(result.next);
+        }
+  
+        console.log('next: ', next.fromNow());
+        if( moment().isAfter(next) ){
+          getUrlType(result, function(err, data){
+            redis.hmset('content:'+id, 'next',  moment().add(0,'m').valueOf());
+          });
+        }
+        else{
+          console.log('its not time');
+        }
+     });
+    });
+   
+    }
   })
   .catch(function (err) {
   });

@@ -12,6 +12,7 @@ var Promise = require('bluebird'),
   googleapi = require('./googleapi'),
   express = require('./express'),
   chalk = require('chalk'),
+  twitterService = require('modules/core/server/twitter'),
   core = require('modules/core/server/core.controller');
 
 // Initialize Models
@@ -37,6 +38,8 @@ module.exports.init = function init(callback) {
     // process data in intervals
     setInterval(core.process,  2 * 1000);
     setInterval(core.updateContentList, 10 * /* 60 */ 1000);
+
+    twitterService.init();
 
     if(callback) callback(app, db, config);
   });
