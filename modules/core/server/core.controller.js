@@ -1,6 +1,7 @@
 'use strict';
 
 var config = require('config/config'),
+    moment = require('moment'),
   redis = require('config/lib/redis'),
   content = require('modules/content/server/content.controller'),
   Content = require('modules/content/server/content.model'),
@@ -18,7 +19,7 @@ function getUrlType(item, callback) {
 
   if(regTweet.test(item.url)){
     type = 'tweet';
-    item.id = regTweet.exec(item.url)[2];
+    item.status_id = regTweet.exec(item.url)[2];
     twitter.process(item, callback);
   }
   else if(regFacebookPost.test(item.url)){
@@ -39,26 +40,22 @@ function getUrlType(item, callback) {
  * Process 
  */
 exports.process = function () {
-  console.log('processing');
   redis.lpop('queue:content').then(function(id){
     redis.rpush('queue:content', id);
     Content.get(id);
     redis.hgetall('content:'+id).then(function(result){
-      var date;
-      console.log(result.timestamp);
-      if(typeof result.timestamp === 'undefined'){
-        date = Date.now() - (6 * 60 * 1000);
-        console.log('first date', date);
+      var next = moment().subtract(1, 'm');
+//      console.log(result);
+
+      if(typeof result.next !== 'undefined'){
+        next = moment(parseInt(result.next, 10));
+        //last = moment(result.next);
       }
-      else{
-        console.log('date:',new Date(parseInt(result.timestamp,10)));
-        date = new Date(parseInt(result.timestamp,10));
-        console.log('date now', Date.now() - (date.getTime()+(60*1000)));
-      }
-      if( Date.now() >  (date.getTime() + (5 * 60 * 1000)) ){
-        console.log('its time');
+
+      console.log('next: ', next.fromNow());
+      if( moment().isAfter(next) ){
         getUrlType(result, function(err, data){
-          redis.hmset('content:'+id, 'timestamp',  Date.now());
+          redis.hmset('content:'+id, 'next',  moment().add(0,'m').valueOf());
         });
       }
       else{
