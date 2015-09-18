@@ -47,8 +47,7 @@ exports.process = function () {
     else{
       redis.lpop('queue:content').then(function(id){
       redis.rpush('queue:content', id);
-      Content.get(id);
-      redis.hgetall('content:'+id).then(function(result){
+      Content.get(id).then(function(result){
         var next = moment().subtract(1, 'm');
   //      console.log(result);
   
@@ -64,7 +63,7 @@ exports.process = function () {
             redis.hmset('content:'+id, 'next',  moment().add(15,'m').valueOf());
           });
         }
-     });
+      });
     });
    
     }
