@@ -21,9 +21,10 @@ var path = require('path'),
   };
 
   exports.accountById = function(req, res, next, id) {
-    AnalyticsAccount.get(id).then(function(result){
-      console.log('heres the result from accountById: ', result);
-      req.account = result;
-      next();
-    });
+    AnalyticsAccount.get(id)
+      .then(function(result){
+        console.log('heres the result from accountById: ', result);
+        req.account = result;
+        next();
+      });
   };

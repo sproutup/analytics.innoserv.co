@@ -2,23 +2,18 @@
 
 var moment = require('moment');
 var _ = require('lodash');
-var google = require('googleapis');
-var analytics = google.analytics('v3');
-var youtube = google.youtube('v3');
-var youtubeAnalytics = google.youtubeAnalytics('v1');
+var google = require('config/lib/googleapi');
+// var analytics = google.analytics('v3');
+// var youtube = google.youtube('v3');
+// var youtubeAnalytics = google.youtubeAnalytics('v1');
 //require('./analyticsAccountSummary');
 var Bookshelf = require('../../../config/lib/bookshelf').bookshelf;
-var oauth2Client = null;
 var account = null;
 var knex = require('config/lib/knex').knex,
     redis = require('config/lib/redis');
 
 var AnalyticsAccount = function() {
 
-};
-
-AnalyticsAccount.prototype.getTest = function(id, callback) {
-    return knex('analytics_account').where('id', id);
 };
 
 AnalyticsAccount.prototype.getAll = function(callback) {
@@ -37,7 +32,6 @@ AnalyticsAccount.prototype.loadFromCache = function(id) {
     .then(function(result){
         console.log('loading from cache: ', result);
         _self.data = result;
-        return result;
     });
 };
 
@@ -47,39 +41,230 @@ AnalyticsAccount.prototype.loadFromDB = function(id) {
         .where('id', id)
         .first()
         .then(function(result) {
-            console.log('loading from DB: ' + result);
+            console.log('loading from DB: ', result);
             _self.data = result;
-            return _self;
         });
 };
 
 AnalyticsAccount.prototype.setCache = function() {
     var _self = this;
-    return redis.hmset('analytics_account:' + this.data.id, _self.data)
-        .then(function(result){
-          return _self;
-        });
+    return redis.hmset('analytics_account:' + this.data.id, _self.data);
 };
 
+AnalyticsAccount.prototype.clearCache = function() {
+    var _self = this;
+    console.log('about to clear');
+    return redis.del('analytics_account:' + _self.data.id);
+};
+
+AnalyticsAccount.prototype.update = function() {
+  var _self = this;
+  return knex('analytics_account')
+    .where('id', _self.data.id)
+    .update(_.pick(_self.data, ['access_token', 'is_valid', 'expires_at']));    
+};
+
+AnalyticsAccount.prototype.checkToken = function(account) {
+    var _self = this;
+    return moment().isAfter(new Date(_self.data.expires_at));
+};
+
+AnalyticsAccount.prototype.refreshToken = function() {
+    var _self = this;
+
+    google.setCredentials({
+        access_token: _self.data.access_token,
+        refresh_token: _self.data.refresh_token
+    });
+
+    return google.refreshAccessTokenAsync().then(function(tokens) {
+        // your access_token is now refreshed and stored in oauth2Client
+        // store these new tokens in a safe place (e.g. database)
+        _self.data.expires_at = new Date(tokens[0].expiry_date);
+        _self.data.access_token = tokens[0].access_token;
+    });
+};
+
+/*
+ * Get up to date tokens
+ */
+AnalyticsAccount.prototype.getToken = function() {
+    var _self = this;
+    var tokenExpired = _self.checkToken();
+    // If the token is expired, refresh the token, update the DB, and clear the cache
+    if (tokenExpired === true) {
+        _self.refreshToken()
+            .then(function(result) {
+                _self.update()
+                    .then(function() {
+                        _self.clearCache();
+                    });
+            });
+    } else {
+        console.log('the token is fine. returning: ', _self.data.access_token);
+        return _self.data;
+    }
+};
+
+/*
+ * Get one anayltics account with up to date tokens
+ */
 AnalyticsAccount.prototype.get = function(id, callback) {
-    var analytics_account = new AnalyticsAccount();
-    return analytics_account.checkCache(id)
+    var item = new AnalyticsAccount();
+    // See if we have the account in cache
+    return item.checkCache(id)
         .then(function(result) {
+            // Load cache or load from DB and set cache
             if (result === 1) {
-                return analytics_account.loadFromCache(id);
+                return item.loadFromCache(id);
             } else {
-                return analytics_account.loadFromDB(id)
+                return item.loadFromDB(id)
                     .then(function(result) {
-                        return analytics_account.setCache();
+                        return item.setCache();
                     })
                     .then(function(result) {
-                        return analytics_account.data;
+                        return item.data;
                     });
             }
+        })
+        .then(function(result) {
+            return item.getToken(result);
         });
+
 };
 
 module.exports = AnalyticsAccount;
+
+// get
+//     checkCache
+//         load from cache
+//         OR load from db
+//             set cache
+//     check token
+//         return account
+//         OR refresh token
+//             update db
+//             clearCache
+//             return account
+
+
+    // If token is expired, grab a new one
+    // if(true) {
+    //     console.log('expired access token - needs refresh');
+    //     return google.refreshAccessTokenAsync().then()  (function(err, tokens) {
+    //         // your access_token is now refreshed and stored in oauth2Client
+    //         // store these new tokens in a safe place (e.g. database)
+    //         if(err){
+    //             console.log('Encountered error', err);
+    //             // account.set('error_message', err.message);
+    //             // account.set('is_valid', 0);
+    //             // account.save();
+    //             callback(err);
+    //         } else {
+    //             // Update DB and clear cache
+    //             var dateToSave = new Date(tokens.expiry_date);
+    //             _self.data.expires_at = dateToSave;
+    //             _self.data.access_token = tokens.access_token;
+    //             _self.data.is_valid = 0;
+    //             console.log('before update');
+    //             _self.update()
+    //                 .then(function(res){
+    //                     console.log('did we update?', _self.data);
+    //                     _self.clearCache(_self.data.id)
+    //                         .then(function(res) {
+    //                             console.log('yo', res);
+    //                             console.log(_self.data.id);
+    //                             return _self.data;
+    //                         });
+    //             });
+    //         }
+    //     });
+    // } else {
+    //     console.log('in else');
+    //     return _self.data;
+    // }
+
+    // oauth2Client.setCredentials({
+    //     access_token: this.get('access_token'),
+    //     refresh_token: this.get('refresh_token')
+    // });
+
+    // if(moment().isAfter(this.get('expires_at'))){
+    //     console.log('expired access token - needs refresh');
+    //     oauth2Client.refreshAccessToken(function(err, tokens) {
+    //         // your access_token is now refreshed and stored in oauth2Client
+    //         // store these new tokens in a safe place (e.g. database)
+    //         if(err){
+    //             console.log('Encountered error', err);
+    //             account.set('error_message', err.message);
+    //             account.set('is_valid', 0);
+    //             account.save();
+    //             callback(err);
+    //         } else {
+
+    //         }
+    //     });
+    // }
+
+    // validate: function(callback) {
+        
+    //     callback = (typeof callback === 'function') ? callback : function() {};
+
+    //     var self = this;
+        
+    //     console.log('validate account', this.get('id'));
+    //     var account = this;
+    //     oauth2Client.setCredentials({
+    //         access_token: this.get('access_token'),
+    //         refresh_token: this.get('refresh_token')
+    //     });
+
+    //     if(moment().isAfter(this.get('expires_at'))){
+    //         console.log('expired access token - needs refresh');
+    //         oauth2Client.refreshAccessToken(function(err, tokens) {
+    //             // your access_token is now refreshed and stored in oauth2Client
+    //             // store these new tokens in a safe place (e.g. database)
+    //             if(err){
+    //                 console.log('Encountered error', err);
+    //                 account.set('error_message', err.message);
+    //                 account.set('is_valid', 0);
+    //                 account.save();
+    //                 callback(err);
+    //             }
+    //             else{
+               
+    //                 console.log('tokens', tokens);
+    //                 account.set('access_token', tokens.access_token);
+    //                 account.set('updated_at', moment().toDate());
+    //                 account.set('expires_at', moment(tokens.expiry_date).toDate());
+    //                 account.set('is_valid', 1);
+    //                 account.set('error_message', '');
+    //                 account.save().then(function(){
+    //                     callback(null, 'saved');
+    //                 });
+    //             }
+    //         });
+    //     }
+    //     else{
+    //         console.log('access token still valid');
+    //         callback(null, 'valid token');
+    //    }
+    // },
+
+// AnalyticsAccount.prototype.save = function(data, callback) {
+//     var item = new AnalyticsAccount();
+//     item.data = data;
+
+//     return knex('analytics_account')
+//         .insert({user_id: 1, refresh_token: 'test', provider: 'google', scope: 'blabla'});
+// };
+
+// var testSave = new AnalyticsAccount();
+// testSave.save()
+//     .then(function(result) {
+//         console.log('heres the result from save');
+//         console.log(result);
+//     });
 
 // var AnalyticsAccount = Bookshelf.Model.extend({
 //     tableName: 'analytics_account',
