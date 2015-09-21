@@ -73,17 +73,23 @@ AnalyticsAccount.prototype.checkToken = function(account) {
 AnalyticsAccount.prototype.refreshToken = function() {
     var _self = this;
 
-    oauth2Client.setCredentials({
-        access_token: _self.data.access_token,
-        refresh_token: _self.data.refresh_token
-    });
-
+console.log('oauth', oauth2Client);
     return oauth2Client.refreshAccessTokenAsync().then(function(tokens) {
         // your access_token is now refreshed and stored in oauth2Client
         // store these new tokens in a safe place (e.g. database)
         _self.data.expires_at = new Date(tokens[0].expiry_date);
         _self.data.access_token = tokens[0].access_token;
     });
+};
+
+/*
+ * Set credentials
+ */
+AnalyticsAccount.prototype.setCredentials = function() {
+  oauth2Client.setCredentials({
+    access_token: this.data.access_token,
+    refresh_token: this.data.refresh_token
+  });
 };
 
 /*
@@ -119,7 +125,7 @@ AnalyticsAccount.getByUserId = function(user_id){
   return this.findByUserId(user_id)
     .then(function(result){
       if(!_.isUndefined(result)){
-        return new AnalyticsAccount().get(result.id);
+        return AnalyticsAccount.get(result.id);
       }
       else{
         return null;
@@ -130,7 +136,7 @@ AnalyticsAccount.getByUserId = function(user_id){
 /*
  * Get one anayltics account with up to date tokens
  */
-AnalyticsAccount.prototype.get = function(id) {
+AnalyticsAccount.get = function(id) {
     var item = new AnalyticsAccount();
     // See if we have the account in cache
     return item.checkCache(id)
@@ -149,6 +155,7 @@ AnalyticsAccount.prototype.get = function(id) {
             }
         })
         .then(function(result) {
+            item.setCredentials();
             return item.getToken(result);
         });
 

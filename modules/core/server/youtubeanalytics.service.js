@@ -76,6 +76,7 @@ TwitterService.getFlag = function(id){
 */
 
 YoutubeAnalyticsService.getChannels = function(){
+console.log('oauth', oauth2Client);
   return youtube.channels.listAsync({auth: oauth2Client, part: 'id,snippet,statistics', mine: 'true'});
 };
 
@@ -96,15 +97,22 @@ YoutubeAnalyticsService.updateChannel = function(channel, user_id) {
 };
  
 YoutubeAnalyticsService.process = function(item) {
-  console.log('youtube handler: ', item);
+  var _self = this;
+  console.log('youtube handler: ', item.id);
   AnalyticsAccount.getByUserId(item.user_id)
     .then(function(result){
-        console.log(result);
-    });  
-/*  return this.getChannels()
+        console.log(result.username);
+    })  
+    .then(function(res){
+      _self.getChannels();
+    })
     .map(function(channel){
-        return this.updateChannel(channel, 5);
-    }); */
+        return this.updateChannel(channel, item.user_id);
+    })
+    .catch(function(err){
+      console.log('err:', err);
+      return 'err';
+    });
 };
 
 module.exports = YoutubeAnalyticsService;
