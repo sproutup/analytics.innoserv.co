@@ -19,11 +19,11 @@ var TwitterService = function(){
 TwitterService.init = function(){
   console.log('twitter service init');
   Promise.join( 
-//      TwitterService.quotaStatusesShowReset(), 
-//      TwitterService.quotaStatusesRetweetsReset(),
+      TwitterService.quotaStatusesShowReset(), 
+      TwitterService.quotaStatusesRetweetsReset(),
       function(statuses, retweets){
-        setInterval(TwitterService.quotaStatusesShowReset, moment.duration(15, 'm').asMilliseconds());
-        setInterval(TwitterService.quotaStatusesRetweetsReset, moment.duration(15, 'm').asMilliseconds());
+        setInterval(TwitterService.quotaStatusesShowReset, moment.duration(1, 'm').asMilliseconds());
+        setInterval(TwitterService.quotaStatusesRetweetsReset, moment.duration(1, 'm').asMilliseconds());
      }
   );
 };
@@ -60,7 +60,7 @@ TwitterService.quotaStatusesShowDecr = function(){
 };
 
 TwitterService.quotaStatusesShowReset = function(){
-  return redis.set('quota:twitter:statuses:show', 180);
+  return redis.set('quota:twitter:statuses:show', 12);
 };
 
 TwitterService.quotaStatusesRetweetsDecr = function(){
@@ -68,7 +68,7 @@ TwitterService.quotaStatusesRetweetsDecr = function(){
 };
 
 TwitterService.quotaStatusesRetweetsReset = function(){
-  return redis.set('quota:twitter:statuses:retweets', 60);
+  return redis.set('quota:twitter:statuses:retweets', 4);
 };
 
 TwitterService.setFlag = function(id){
@@ -144,7 +144,6 @@ TwitterService.processRetweets = function(item){
                 data.content_id = item.id; 
                 data.product_id = item.product_id;
                 data.user_id = item.user_id;
-                console.log('..new retweet: ', item.status_id);
                 return EventFact.insert(data)
                   .then(function(next){
                     return TwitterService.setFlag(status.id);

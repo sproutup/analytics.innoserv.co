@@ -2,9 +2,10 @@
 
 var moment = require('moment');
 var _ = require('lodash');
-var google = require('config/lib/googleapi');
+var oauth2Client = require('config/lib/googleapi');
+var google = require('googleapis');
 // var analytics = google.analytics('v3');
-// var youtube = google.youtube('v3');
+ var youtube = google.youtube('v3');
 // var youtubeAnalytics = google.youtubeAnalytics('v1');
 //require('./analyticsAccountSummary');
 var Bookshelf = require('../../../config/lib/bookshelf').bookshelf;
@@ -106,10 +107,33 @@ AnalyticsAccount.prototype.getToken = function() {
     }
 };
 
+AnalyticsAccount.findByUserId = function(user_id){
+  var _self = this;
+  return knex('analytics_account')
+    .where('user_id', user_id)
+    .first()
+    .then(function(result) {
+        console.log('find by user id: ', result);
+        _self.data = result;
+    });
+};
+
+AnalyticsAccount.getByUserId = function(user_id){
+  return this.findByUserId(user_id)
+    .then(function(result){
+      if(!_.isUndefined(result)){
+        return new AnalyticsAccount().get(result.id);
+      }
+      else{
+        return null;
+      }
+    });
+};
+
 /*
  * Get one anayltics account with up to date tokens
  */
-AnalyticsAccount.prototype.get = function(id, callback) {
+AnalyticsAccount.prototype.get = function(id) {
     var item = new AnalyticsAccount();
     // See if we have the account in cache
     return item.checkCache(id)

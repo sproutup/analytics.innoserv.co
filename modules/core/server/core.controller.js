@@ -5,6 +5,7 @@ var config = require('config/config'),
   redis = require('config/lib/redis'),
   content = require('modules/content/server/content.controller'),
   Content = require('modules/content/server/content.model'),
+  YoutubeAnalyticsService = require('./youtubeanalytics.service'),
   twitter = require('./twitter');
 
 // Return url type
@@ -27,7 +28,7 @@ function getUrlType(item, callback) {
   }
   else if(regYouTubeVideo.test(item.url)){
     type = 'youtube';
-    //youtube.process();
+    YoutubeAnalyticsService.process(item);
   }
   else if(regUrl.test(item.url)){
     type = 'url';
@@ -40,7 +41,7 @@ function getUrlType(item, callback) {
  * Process 
  */
 exports.process = function () {
-  redis.llen('queue:content').then(function(val){
+  return redis.llen('queue:content').then(function(val){
     if(val===0){
       return val;
     }
@@ -48,21 +49,8 @@ exports.process = function () {
       redis.lpop('queue:content').then(function(id){
       redis.rpush('queue:content', id);
       Content.get(id).then(function(result){
-        var next = moment().subtract(1, 'm');
-  //      console.log(result);
-  
-        if(typeof result.next !== 'undefined'){
-          next = moment(parseInt(result.next, 10));
-          //last = moment(result.next);
-        }
-  
-        console.log('next: ', next.fromNow());
-        if( moment().isAfter(next) ){
           getUrlType(result, function(err, data){
-            // wait 15 min before check for new analytics
-            redis.hmset('content:'+id, 'next',  moment().add(15,'m').valueOf());
           });
-        }
       });
     });
    
