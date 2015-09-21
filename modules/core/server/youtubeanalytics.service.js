@@ -96,6 +96,7 @@ YoutubeAnalyticsService.updateChannel = function(channel, user_id) {
 };
  
 YoutubeAnalyticsService.process = function(item) {
+  console.log('youtube handler: ', item);
   AnalyticsAccount.getByUserId(item.user_id)
     .then(function(result){
         console.log(result);

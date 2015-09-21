@@ -73,12 +73,12 @@ AnalyticsAccount.prototype.checkToken = function(account) {
 AnalyticsAccount.prototype.refreshToken = function() {
     var _self = this;
 
-    google.setCredentials({
+    oauth2Client.setCredentials({
         access_token: _self.data.access_token,
         refresh_token: _self.data.refresh_token
     });
 
-    return google.refreshAccessTokenAsync().then(function(tokens) {
+    return oauth2Client.refreshAccessTokenAsync().then(function(tokens) {
         // your access_token is now refreshed and stored in oauth2Client
         // store these new tokens in a safe place (e.g. database)
         _self.data.expires_at = new Date(tokens[0].expiry_date);
@@ -111,14 +111,11 @@ AnalyticsAccount.findByUserId = function(user_id){
   var _self = this;
   return knex('analytics_account')
     .where('user_id', user_id)
-    .first()
-    .then(function(result) {
-        console.log('find by user id: ', result);
-        _self.data = result;
-    });
+    .first();
 };
 
 AnalyticsAccount.getByUserId = function(user_id){
+    console.log('user_id:', user_id);
   return this.findByUserId(user_id)
     .then(function(result){
       if(!_.isUndefined(result)){
