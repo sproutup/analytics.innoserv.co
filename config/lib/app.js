@@ -3,17 +3,19 @@
 /**
  * Module dependencies.
  */
-/* global -Promise */
-var Promise = require('bluebird'),
-  config = require('../config'),
+var config = require('../config'),
   mongoose = require('./mongoose'),
   bookshelf = require('./bookshelf'),
   redis = require('./redis'),
   googleapi = require('./googleapi'),
   express = require('./express'),
   chalk = require('chalk'),
+  cron = require('cron'),
   twitterService = require('modules/core/server/twitter'),
   core = require('modules/core/server/core.controller');
+
+/* gl o bal -Pr omi se */
+require('bluebird');
 
 // Initialize Models
 //mongoose.loadModels();
@@ -32,12 +34,13 @@ module.exports.loadModels = function loadModels() {
 module.exports.init = function init(callback) {
   
   bookshelf.connect(function (db){
-    console.log('bookshelf connected');
+    console.log('bookshelf connected', twitterService);
     var app = express.init(db);
 
     // process data in intervals
-    setInterval(core.process,  2 * 1000);
-    setInterval(core.updateContentList, 10 * /* 60 */ 1000);
+//    setInterval(core.process,  2 * 1000);
+//    setInterval(core.updateContentList, 10 * /* 60 */ 1000);
+    setInterval(core.processLinkedAccounts, 10 * /* 60 */ 1000);
 
     twitterService.init();
 

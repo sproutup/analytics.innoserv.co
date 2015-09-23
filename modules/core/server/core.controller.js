@@ -4,6 +4,7 @@ var config = require('config/config'),
     moment = require('moment'),
   redis = require('config/lib/redis'),
   content = require('modules/content/server/content.controller'),
+  linkedAccount = require('modules/linkedAccount/server/linkedAccount.model'),
   Content = require('modules/content/server/content.model'),
   YoutubeAnalyticsService = require('./youtubeanalytics.service'),
   twitter = require('./twitter');
@@ -57,6 +58,17 @@ exports.process = function () {
     }
   })
   .catch(function (err) {
+  });
+};
+
+exports.processLinkedAccounts = function(){
+  console.log('linked accounts');
+  twitter.showUser('1140961536').then(function(res){
+    console.log('res: ', res.id);
+  })
+  .then(linkedAccount.next)
+  .then(function(res){
+    console.log('l:',res);
   });
 };
 

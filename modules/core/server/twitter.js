@@ -5,12 +5,17 @@ var T = require('config/lib/twitter'),
     redis = require('config/lib/redis'),
     /* global -Promise */
     Promise = require('bluebird'),
-    EventFact = require('modules/eventFact/server/eventFact.model');
+    CronJob = require('cron').CronJob,
+    EventFact = require('modules/eventFact/server/eventFact.model'),
+    LinkedAccount = require('modules/linkedAccount/server/linkedAccount.model'),
+    LinkedAccountController = require('modules/linkedAccount/server/linkedAccount.controller');
 
 // statuses/show/631208737580019712
 // statuses/retweets/631208737580019712
+// https://api.twitter.com/1.1/users/show.json
 
 var TwitterService = function(){
+  var self = this;
 };
 
 /*
@@ -18,6 +23,25 @@ var TwitterService = function(){
  */
 TwitterService.init = function(){
   console.log('twitter service init');
+
+//  new CronJob('0 */1 * * * *', 
+//      function() {
+//        console.log('You will see this message every 10 min');
+//        LinkedAccountController.update();
+//      }, 
+//      null, 
+//      true);
+//
+//  new CronJob('*/1 * * * * *', 
+//      function() {
+//        console.log('You will see this message every 10 sec');
+//        LinkedAccountController.process();
+//      }, 
+//      null, 
+//      true);
+
+//  setInterval(LinkedAccount.process, moment.duration(1, 's').asMilliseconds());
+
   Promise.join( 
       TwitterService.quotaStatusesShowReset(), 
       TwitterService.quotaStatusesRetweetsReset(),
@@ -115,6 +139,14 @@ TwitterService.processStatus = function(item) {
          });
       }
     });
+};
+
+// https://api.twitter.com/1.1/users/show.json
+TwitterService.showUser = function(id){
+  return T.getAsync('users/show', { id: id })
+  .then(function(data){
+    return data[0];
+  }); 
 };
 
 TwitterService.processRetweets = function(item){

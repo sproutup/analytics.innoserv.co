@@ -76,7 +76,6 @@ TwitterService.getFlag = function(id){
 */
 
 YoutubeAnalyticsService.getChannels = function(){
-console.log('oauth', oauth2Client);
   return youtube.channels.listAsync({auth: oauth2Client, part: 'id,snippet,statistics', mine: 'true'});
 };
 
@@ -101,7 +100,8 @@ YoutubeAnalyticsService.process = function(item) {
   console.log('youtube handler: ', item.id);
   AnalyticsAccount.getByUserId(item.user_id)
     .then(function(result){
-        console.log(result.username);
+      console.log('result:', result);
+        //console.log(result.username);
     })  
     .then(function(res){
       _self.getChannels();
