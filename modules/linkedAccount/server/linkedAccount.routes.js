@@ -14,6 +14,9 @@ module.exports = function (app) {
   app.route('/api/linked/account/init') //.all(articlesPolicy.isAllowed)
     .get(linkedAccount.init);
 
+  app.route('/api/linked/account/next') //.all(articlesPolicy.isAllowed)
+    .get(linkedAccount.next);
+
   // Single linkedAccount routes
   app.route('/api/linked/account/:linkedAccountId')//.all(articlesPolicy.isAllowed)
     .get(linkedAccount.read);

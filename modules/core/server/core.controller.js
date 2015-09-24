@@ -7,7 +7,7 @@ var config = require('config/config'),
   linkedAccount = require('modules/linkedAccount/server/linkedAccount.model'),
   Content = require('modules/content/server/content.model'),
   YoutubeAnalyticsService = require('./youtubeanalytics.service'),
-  twitter = require('./twitter');
+  twitter = require('./twitter.service');
 
 // Return url type
 function getUrlType(item, callback) {
@@ -66,7 +66,7 @@ exports.processLinkedAccounts = function(){
   twitter.showUser('1140961536').then(function(res){
     console.log('res: ', res.id);
   })
-  .then(linkedAccount.next)
+//  .then(linkedAccount.next)
   .then(function(res){
     console.log('l:',res);
   });

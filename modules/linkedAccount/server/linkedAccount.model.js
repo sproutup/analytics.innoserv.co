@@ -2,11 +2,25 @@
 
 var knex = require('config/lib/knex').knex,
   redis = require('config/lib/redis'),
+  Promise = require('bluebird'),
   _ = require('lodash');
 
-var LinkedAccount = function() {
-  this.data = {id: -1};
+var LinkedAccount = function(data) {
   this.id = -1;
+  this.schema = {
+    id: null,
+    user_id: null,
+    provider_user_id: null,
+    provider_key: null,
+    provider_user_name: null,
+    provider_user_image_url: null
+  };
+  this.data = this.sanitize(data);
+};
+
+LinkedAccount.prototype.sanitize = function (data) {
+  data = data || {};
+  return _.pick(_.defaults(data, this.schema), _.keys(this.schema));
 };
 
 LinkedAccount.prototype.get = function(id){
@@ -15,7 +29,6 @@ LinkedAccount.prototype.get = function(id){
 
 LinkedAccount.prototype.key = function(){
   var key = 'linked:account:' + this.id;
-  console.log(key);
   return key;
 };
 
@@ -27,15 +40,22 @@ LinkedAccount.key = function(id){
 LinkedAccount.prototype.update = function(){
   var _self = this;
   console.log('updating: ', _self.data.id);
-  return knex('content')
+  this.data = this.sanitize(this.data);
+//  return _.omit(_self.data, ['id']);
+  return knex('linked_account')
     .where('id', _self.data.id)
-    .update(_.pick(_self.data, ['url', 'updated_at']));
+    .update(_.omit(_self.data, ['id']))
+    .then(function(){
+      redis.del('user:'+_self.data.id);
+      return _self.data;
+    });
 };
 
 LinkedAccount.prototype.insert = function(){
   var _self = this;
-  return knex('content')
-    .insert(_.omit(_self.data, ['id', 'timestamp', 'product_trial_id']));
+  this.data = this.sanitize(this.data);
+  return knex('linked_account')
+    .insert(_.omit(_self.data, ['id']));
 };
 
 LinkedAccount.prototype.setCache = function(){
@@ -51,7 +71,7 @@ LinkedAccount.prototype.loadFromCache = function(){
   return redis.hgetall(this.key())
     .then(function(result){
       _self.data = result;
-      return result;
+      return _self;
     });
 };
 
@@ -68,7 +88,7 @@ LinkedAccount.prototype.loadFromDB = function(id){
     .then(function(result){ 
       console.log('load from DB: ', result);
       _self.data = result;
-      return result;
+      return _self;
     });
 };
 
@@ -93,12 +113,11 @@ LinkedAccount.forge = function(id){
 LinkedAccount.next = function () {
   var _self = this;
   redis.lpop('queue:linked:account').then(function(item){
-    console.log('next: ', item);
-/*    if(_.isUndefined(item)){
-      console.log('undefined');
+    if(_.isUndefined(item)){
+      console.log('not found');
       return item;
     }
-    console.log('found: ', item); */
+    console.log('found: ', item);
     redis.rpush('queue:linked:account', item);
     return LinkedAccount.get(item);
   })

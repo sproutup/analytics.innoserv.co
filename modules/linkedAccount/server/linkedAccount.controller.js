@@ -4,10 +4,11 @@
  * Module dependencies.
  */
 var knex = require('config/lib/knex').knex,
+  twitterService = require('modules/core/server/twitter.service'),
   config = require('config/config'),
   redis = require('config/lib/redis'),
   _ = require('lodash'),
-  twitterService = require('modules/core/server/twitter'),
+  youtubeanalytics = require('modules/core/server/youtubeanalytics.service'),
   errorHandler = require('modules/core/server/errors.controller');
 
 //var Promise = require('bluebird');
@@ -135,6 +136,49 @@ exports.update = function(){
         return result;
       });
 };
+
+/**
+ * Next
+ */
+exports.next = function (req, res) {
+  var _self = this;
+  var key = 'queue:linked:account';
+
+  return redis.rpoplpush(key, key)
+    .then(function(item){
+      if(_.isUndefined(item)){
+        console.log('undefined');
+        return 'empty list';
+      }
+      console.log('queue:linked:account -> ', item);
+      return LinkedAccount.get(item)
+      .then(function(account){
+        console.log('account:', account.data.provider_user_id);
+        if(account.data.provider_key === 'twitter'){
+          console.log('id:', account.data.provider_user_id);
+          return twitterService.showUser(account.data.provider_user_id)
+            .then(function(user){
+              console.log('show user: ', account);
+              console.log('updating ' + user.id_str + '===' + account.data.provider_user_id);
+              if(user.id_str === account.data.provider_user_id){
+                console.log('updating', account);
+                account.data.provider_user_name = user.screen_name;
+                account.data.provider_user_image_url = user.profile_image_url_https;
+                return account.update();
+              }
+              return 'no op';
+            });
+        }
+        return {};
+      })
+      .then(function(result){
+        console.log('update result ', result);
+        res.json(result);
+      });
+    })
+    .catch(console.log.bind(console));
+};
+
 
 /**
  * Add all content to the queue

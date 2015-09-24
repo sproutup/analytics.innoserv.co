@@ -11,15 +11,14 @@ var config = require('../config'),
   express = require('./express'),
   chalk = require('chalk'),
   cron = require('cron'),
-  twitterService = require('modules/core/server/twitter'),
+  twitterService = require('modules/core/server/twitter.service'),
   core = require('modules/core/server/core.controller');
-
-/* gl o bal -Pr omi se */
-require('bluebird');
 
 // Initialize Models
 //mongoose.loadModels();
 bookshelf.loadModels();
+
+require('bluebird');
 
 //SeedDB
 if (config.seedDB) {
@@ -34,13 +33,12 @@ module.exports.loadModels = function loadModels() {
 module.exports.init = function init(callback) {
   
   bookshelf.connect(function (db){
-    console.log('bookshelf connected', twitterService);
     var app = express.init(db);
 
     // process data in intervals
 //    setInterval(core.process,  2 * 1000);
 //    setInterval(core.updateContentList, 10 * /* 60 */ 1000);
-    setInterval(core.processLinkedAccounts, 10 * /* 60 */ 1000);
+//    setInterval(core.processLinkedAccounts, 10 * /* 60 */ 1000);
 
     twitterService.init();
 
