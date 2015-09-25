@@ -48,13 +48,13 @@ exports.process = function () {
     }
     else{
       redis.lpop('queue:content').then(function(id){
-      redis.rpush('queue:content', id);
-      Content.get(id).then(function(result){
+        redis.rpush('queue:content', id);
+        Content.get(id).then(function(result){
+          console.log(result.getType());
           getUrlType(result, function(err, data){
           });
-      });
-    });
-   
+        });
+      });   
     }
   })
   .catch(function (err) {

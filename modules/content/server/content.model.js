@@ -22,6 +22,47 @@ Content.key = function(id){
   return key;
 };
 
+Content.prototype.getType = function(){
+  var regTweet = /^https:\/\/twitter\.com\/(\w+)\/status\/(.+)$/;
+  var regFacebookPost = /^https:\/\/www\.facebook\.com\/([^\/]+)\/posts\/(\d+)$/;
+  var regYouTubeVideo = /^https:\/\/www\.youtube\.com\/watch\?v=([-\w]+)$/;
+  var regUrl = /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/;
+
+  console.log('getType()');
+  
+  var res = {
+    type: 'unknown',
+    user: '',
+    id: ''
+  };
+
+  if(_.isUndefined(this.data.url)){
+    return res; 
+  }
+
+  if(regTweet.test(this.data.url)){
+    res.type = 'tweet';
+    res.user = regTweet.exec(this.data.url)[1]; 
+    res.id = regTweet.exec(this.data.url)[2];
+  }
+  else if(regFacebookPost.test(this.data.url)){
+    res.type = 'facebook';
+    res.user = regFacebookPost.exec(this.data.url)[1]; 
+    res.id = regFacebookPost.exec(this.data.url)[2];
+  }
+  else if(regYouTubeVideo.test(this.data.url)){
+    res.type = 'youtube';
+    res.id = regYouTubeVideo.exec(this.data.url)[1];
+  }
+  else if(regUrl.test(this.data.url)){
+    res.type = 'url';
+  }
+
+  console.log('type:', res);
+  return res;
+};
+
+
 Content.prototype.update = function(){
   var _self = this;
   console.log('updating: ', _self.data.id);
@@ -50,7 +91,7 @@ Content.prototype.loadFromCache = function(id){
     .then(function(result){
       //console.log('getCache:', result.id);
       _self.data = result;
-      return result;
+      return _self;
     });
 };
 
@@ -70,7 +111,7 @@ Content.prototype.loadFromDB = function(id){
     .then(function(result){ 
       console.log('load from DB: ', result);
       _self.data = result;
-      return result;
+      return _self;
     });
 };
 
@@ -100,9 +141,6 @@ Content.get = function(id){
           .then(function(result){
             // add to cache
             return item.setCache();
-          })
-          .then(function(result){
-            return item.data;
           });
       }
     });

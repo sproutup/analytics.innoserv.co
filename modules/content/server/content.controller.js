@@ -77,6 +77,34 @@ exports.init = function (req, res) {
 //  });
 };
 
+exports.next = function (req, res){
+  return redis.llen('queue:content').then(function(val){
+    console.log('val:', val);
+    if(val==='0'){
+      return {len: val};
+    }
+    else{
+      return redis.rpoplpush('queue:content','queue:content')
+        .then(Content.get)
+        .then(function(result){
+          console.log('res:',result);
+          console.log(result.getType());
+          return result;
+        });
+    }
+  })
+  .then(function(result){
+    console.log('res:',result);
+    res.json(result);
+  })
+//  .catch(function (err) {
+//    res.json({err: err});
+//  })
+  .onPossiblyUnhandledRejection(function(e, promise) {
+        throw e;
+  });
+};
+
 /**
  * Add new content to the queue
  */

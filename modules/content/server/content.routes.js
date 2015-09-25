@@ -11,6 +11,9 @@ module.exports = function (app) {
   app.route('/api/content') //.all(articlesPolicy.isAllowed)
     .get(content.list);
 
+  app.route('/api/content/next') //.all(articlesPolicy.isAllowed)
+    .get(content.next);
+
   app.route('/api/content/init') //.all(articlesPolicy.isAllowed)
     .get(content.init);
 
