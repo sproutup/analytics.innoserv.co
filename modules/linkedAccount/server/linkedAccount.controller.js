@@ -185,26 +185,39 @@ exports.next = function (req, res) {
  */
 exports.process = function () {
   var _self = this;
-  redis.lpop('queue:linked:account').then(function(item){
-    if(_.isUndefined(item)){
-      console.log('undefined');
-      return 'done';
-    }
-    redis.rpush('queue:linked:account', item);
-    console.log('item', twitterService);
-    LinkedAccount.get(item)
-    .then(function(result){
-      if(result.provider_key === 'twitter'){
-        console.log('twitter_id', result);
-        twitterService.showUser('1234')  //result.provider_user_id)
-        .then(function(user){
-          console.log(user);
-        });
+  var key = 'queue:linked:account';
+
+  return redis.rpoplpush(key, key)
+    .then(function(item){
+      if(_.isUndefined(item)){
+        console.log('undefined');
+        return 'empty list';
       }
-    });
-  })
-  .catch(function (err) {
-  });
+      console.log('queue:linked:account -> ', item);
+      return LinkedAccount.get(item)
+      .then(function(account){
+        if(account.data.provider_key === 'twitter'){
+          console.log('id:', account.data.provider_user_id);
+          return twitterService.showUser(account.data.provider_user_id)
+            .then(function(user){
+//              console.log('show user: ', account);
+//              console.log('updating ' + user.id_str + '===' + account.data.provider_user_id);
+              if(user.id_str === account.data.provider_user_id){
+//                console.log('updating', account);
+                account.data.provider_user_name = user.screen_name;
+                account.data.provider_user_image_url = user.profile_image_url_https;
+                return account.update();
+              }
+              return 'no op';
+            });
+        }
+        return {};
+      })
+      .then(function(result){
+        return result;
+      });
+    })
+    .catch(console.log.bind(console));
 };
 
 /**

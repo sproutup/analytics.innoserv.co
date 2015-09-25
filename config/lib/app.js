@@ -10,15 +10,22 @@ var config = require('../config'),
   googleapi = require('./googleapi'),
   express = require('./express'),
   chalk = require('chalk'),
-  cron = require('cron'),
-  twitterService = require('modules/core/server/twitter.service'),
+  CronJob = require('cron').CronJob,
+  TwitterService = require('modules/core/server/twitter.service'),
+  LinkedAccountController = require('modules/linkedAccount/server/linkedAccount.controller'),
+  ContentController = require('modules/content/server/content.controller'),
   core = require('modules/core/server/core.controller');
 
 // Initialize Models
 //mongoose.loadModels();
 bookshelf.loadModels();
 
-require('bluebird');
+var Promise = require('bluebird');
+
+process.on('uncaughtException', function (err) {
+  console.error('An uncaught error occurred!');
+  console.error(err.stack);
+});
 
 //SeedDB
 if (config.seedDB) {
@@ -31,20 +38,63 @@ module.exports.loadModels = function loadModels() {
 };
 
 module.exports.init = function init(callback) {
-  
+
+  LinkedAccountController.update();
+
   bookshelf.connect(function (db){
     var app = express.init(db);
-
-    // process data in intervals
-//    setInterval(core.process,  2 * 1000);
-//    setInterval(core.updateContentList, 10 * /* 60 */ 1000);
-//    setInterval(core.processLinkedAccounts, 10 * /* 60 */ 1000);
-
-    twitterService.init();
+//    new CronJob('0 */1 * * * *',
+//        function() {
+//          console.log('Check for new linked accounts');
+//          LinkedAccountController.update();
+//        },
+//        null,
+//        true);
+//
+//    new CronJob('*/10 * * * * *',
+//        function() {
+//          LinkedAccountController.process();
+//        },
+//        null,
+//        true);
+//
+    TwitterService.quotaStatusesShowReset();
+    TwitterService.quotaStatusesRetweetsReset();
+//
+//    new CronJob('0 */1 * * * *',
+//        function() {
+//          console.log('Check for new content');
+//          TwitterService.quotaStatusesShowReset();
+//        },
+//        null,
+//        true);
+//
+//    new CronJob('0 */1 * * * *',
+//        function() {
+//          console.log('Check for new content');
+//          TwitterService.quotaStatusesRetweetsReset();
+//        },
+//        null,
+//        true);
+//
+//    new CronJob('0 */1 * * * *',
+//        function() {
+//          console.log('Check for new content');
+//          core.updateContentList();
+//        },
+//        null,
+//        true);
+//
+//    new CronJob('*/2 * * * * *',
+//        function() {
+//          ContentController.process();
+//        },
+//        null,
+//        true);
 
     if(callback) callback(app, db, config);
   });
-  
+
 //  mongoose.connect(function (db) {
 //      // Initialize express
 //      var app = express.init(db);

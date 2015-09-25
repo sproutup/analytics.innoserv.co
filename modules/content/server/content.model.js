@@ -6,6 +6,7 @@ var knex = require('config/lib/knex').knex,
 
 var Content = function() {
   this.data = {id: -1};
+  this.type = {};
 };
 
 Content.prototype.get = function(id){
@@ -28,8 +29,6 @@ Content.prototype.getType = function(){
   var regYouTubeVideo = /^https:\/\/www\.youtube\.com\/watch\?v=([-\w]+)$/;
   var regUrl = /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/;
 
-  console.log('getType()');
-  
   var res = {
     type: 'unknown',
     user: '',
@@ -58,7 +57,7 @@ Content.prototype.getType = function(){
     res.type = 'url';
   }
 
-  console.log('type:', res);
+  //console.log('type:', res);
   return res;
 };
 
@@ -120,6 +119,14 @@ Content.findAll = function (callback){
   return knex.select('*')
     .from('content')
     .nodeify(callback);
+};
+
+Content.addToList = function(id){
+  this.get(id).then(function(item){
+    item.getType();
+    var type = item.getType();
+    redis.lpush('queue:content:' + type.type, id);
+  });
 };
 
 /*

@@ -8,7 +8,8 @@ var knex = require('config/lib/knex').knex,
   redis = require('config/lib/redis'),
   _ = require('lodash'),
   errorHandler = require('modules/core/server/errors.controller');
-
+var TwitterService = require('modules/core/server/twitter.service');
+var YoutubeAnalyticsService = require('modules/core/server/youtubeanalytics.service');
 var P = require('bluebird');
 var Content = require('./content.model');
 var ContentP = P.promisifyAll(Content);
@@ -18,6 +19,19 @@ var ContentP = P.promisifyAll(Content);
  * Show the current content item
  */
 exports.read = function (req, res) {
+  var result = req.content;
+  var type = result.getType();
+  switch(type.type){
+    case 'tweet':
+      TwitterService.process(result, type);
+      break;
+    case 'url':
+      break;
+    case 'youtube':
+      YoutubeAnalyticsService.process(result, type);
+      break;
+  }
+ 
   res.json(req.content);
 };
 
@@ -55,10 +69,25 @@ exports.list = function (req, res) {
 };
 
 /**
+ * Update content queue
+ */
+var update = function(){
+  var _self = this;
+  return _self.getLatestContentId()
+      .then(_self.addLatestContent)
+      .then(function(result){
+        return result;
+      });
+}
+
+/**
  * Add all content to the queue
  */
 exports.init = function (req, res) {
   var _self = this;
+  this.update().then(function(){
+    res.json({});
+  });
 //  Contents.forge()
 //    .fetch()
 //    .then(function (collection) {
@@ -79,7 +108,6 @@ exports.init = function (req, res) {
 
 exports.next = function (req, res){
   return redis.llen('queue:content').then(function(val){
-    console.log('val:', val);
     if(val==='0'){
       return {len: val};
     }
@@ -87,22 +115,22 @@ exports.next = function (req, res){
       return redis.rpoplpush('queue:content','queue:content')
         .then(Content.get)
         .then(function(result){
-          console.log('res:',result);
-          console.log(result.getType());
+          result.getType();
           return result;
         });
     }
-  })
-  .then(function(result){
-    console.log('res:',result);
-    res.json(result);
-  })
+  });
+//  .then(function(result){
+//    console.log('res:',result);
+//    return result;
+//  })
 //  .catch(function (err) {
 //    res.json({err: err});
 //  })
-  .onPossiblyUnhandledRejection(function(e, promise) {
-        throw e;
-  });
+//  .onPossiblyUnhandledRejection(function(e, promise) {
+//        throw e;
+//  });
+
 };
 
 /**
@@ -118,7 +146,10 @@ exports.addLatestContent = function (latest_id) {
     .then(function(rows) {
       return _.pluck(rows, 'id');
     })
-    .then(function(array){
+    .map(function(id){
+      Content.addToList(id);
+    })
+/*    .then(function(array){
       if(array.length > 0){
         console.log('found new content: ', array);
         redis.lpush('queue:content', array);
@@ -128,7 +159,7 @@ exports.addLatestContent = function (latest_id) {
       else{
         return -1;
       }
-    })
+    }) */
     .then(function(res){
       if(res > 0){
         var key = 'content:queue:latest';
@@ -226,10 +257,32 @@ function getUrlType(_url) {
 }
 
 /**
- * Add all content to the queue
+ * process next content in the queue
  */
 exports.process = function () {
-  redis.lpop('queue:content').then(function(item){
+  return redis.llen('queue:content').then(function(val){
+    if(val==='0'){
+      return {len: val};
+    }
+    else{
+      return redis.rpoplpush('queue:content','queue:content')
+        .then(Content.get)
+        .then(function(result){
+          var type = result.getType();
+          switch(type.type){
+            case 'tweet':
+//              return TwitterService.process(result, type);
+            case 'url':
+              break;
+            case 'youtube':
+              break;
+          }
+          return result;
+        });
+    }
+  });
+
+/* redis.lpop('queue:content').then(function(item){
     redis.rpush('queue:content', item);
     Content.get(item);
     redis.hmget('content:'+item, 'url').then(function(url){
@@ -239,7 +292,7 @@ exports.process = function () {
     });
   })
   .catch(function (err) {
-  });
+  }); */
 };
 
 /**
