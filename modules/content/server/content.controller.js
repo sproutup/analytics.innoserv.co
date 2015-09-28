@@ -13,33 +13,51 @@ var YoutubeAnalyticsService = require('modules/core/server/youtubeanalytics.serv
 var P = require('bluebird');
 var Content = require('./content.model');
 var ContentP = P.promisifyAll(Content);
+var Queue = require('modules/core/server/circularQueue');
+
+
+var ContentController = function(){
+};
 
 
 /**
- * Show the current content item
+ * Update content queue
  */
-exports.read = function (req, res) {
-  var result = req.content;
-  var type = result.getType();
-  switch(type.type){
-    case 'tweet':
-      TwitterService.process(result, type);
-      break;
-    case 'url':
-      break;
-    case 'youtube':
-      YoutubeAnalyticsService.process(result, type);
-      break;
-  }
- 
-  res.json(req.content);
+ContentController.update = function(){
+  return ContentController.addLatestContent()
+      .then(function(result){
+        return result;
+      });
+};
+
+
+/**
+ * Add all content to the queue
+ */
+ContentController.init = function(req, res){
+  var q = new Queue('queue:content');
+  return q.clear().then(function(){
+      return q.last();
+    })
+    .then(Content.findGreaterThan)
+    .then(function(val){
+      if(val.length>0){
+        return q.add(val);
+      }
+    })
+    .then(function(result){
+      res.json({res: result});
+    })
+    .catch(function(err){
+      // todo
+    });
 };
 
 
 /**
  * List of Content
  */
-exports.list = function (req, res) {
+ContentController.list = function (req, res) {
   console.log('content list', Content);
 //  Content.findAll(function(err, data){    
 //    res.json({error: false, data: data});
@@ -54,6 +72,36 @@ exports.list = function (req, res) {
         message: errorHandler.getErrorMessage(err)
       });
     });
+};
+
+
+/**
+ * Show the current content item
+ */
+ContentController.read = function (req, res) {
+  var result = req.content;
+  var type = result.getType();
+  switch(type.type){
+    case 'tweet':
+      TwitterService.process(result, type);
+      break;
+    case 'url':
+      break;
+    case 'youtube':
+      YoutubeAnalyticsService.process(result, type);
+      break;
+  }
+  res.json(req.content);
+};
+
+
+
+
+//ContentController.prototype.update = update;
+//ContentController.prototype.getLatestContentId = getLatestContentId;
+//ContentController.prototype.addLatestContent = addLatestContent;
+
+
 
 
 //  Contents.forge()
@@ -66,7 +114,7 @@ exports.list = function (req, res) {
 //        message: errorHandler.getErrorMessage(err)
 //      });
 //  });
-};
+//};
 
 /**
  * Update content queue
@@ -78,32 +126,6 @@ var update = function(){
       .then(function(result){
         return result;
       });
-}
-
-/**
- * Add all content to the queue
- */
-exports.init = function (req, res) {
-  var _self = this;
-  this.update().then(function(){
-    res.json({});
-  });
-//  Contents.forge()
-//    .fetch()
-//    .then(function (collection) {
-//      redis.del('queue:content');
-//      collection.each(function(item){
-//        redis.del('content:'+item.get('id'));
-//        redis.hmset('content:'+item.get('id'), 'url', item.get('url'));
-//        redis.lpush('queue:content', item.get('id'));
-//      });
-//      res.json({error: false, data: collection.toJSON()});
-//    })
-//    .catch(function (err) {
-//      return res.status(400).send({
-//        message: errorHandler.getErrorMessage(err)
-//      });
-//  });
 };
 
 exports.next = function (req, res){
@@ -133,62 +155,19 @@ exports.next = function (req, res){
 
 };
 
-/**
- * Add new content to the queue
- */
-exports.addLatestContent = function (latest_id) {
-  var _self = this;
-
-  return knex.select('id').from('content')
-    .where('id', '>', latest_id)
-    .orderBy('id', 'asc')
-    .limit(10)
-    .then(function(rows) {
-      return _.pluck(rows, 'id');
-    })
-    .map(function(id){
-      Content.addToList(id);
-    })
-/*    .then(function(array){
-      if(array.length > 0){
-        console.log('found new content: ', array);
-        redis.lpush('queue:content', array);
-        // last element
-        return array[array.length - 1];
-      }
-      else{
-        return -1;
-      }
-    }) */
-    .then(function(res){
-      if(res > 0){
-        var key = 'content:queue:latest';
-        redis.set(key, res);
-        return res;
-      }
-      else{
-        return -1;
-      }
-    })
-    .catch(function(err){
-      // todo
-    });
-};
-
 /*
  *
  */
-exports.setLatestContentId = function(id, callback){
+ContentController.setLatestContentId = function(id){
   var key = 'content:queue:latest';
   redis.set(key, id);
-  callback(null);
 };
 
 
 /*
  *
  */
-exports.getLatestContentId = function(){
+ContentController.getLatestContentId = function(){
   var key = 'content:queue:latest';
   return redis.get(key)
       .then(function(result){
@@ -298,7 +277,7 @@ exports.process = function () {
 /**
  * Content middleware
  */
-exports.contentByID = function (req, res, next, id) {
+ContentController.contentByID = function (req, res, next, id) {
 
   Content.get(id).then(function(result){
     req.content = result;
@@ -323,3 +302,6 @@ exports.contentByID = function (req, res, next, id) {
 //    next();
 //  });
 };
+
+
+module.exports = ContentController;

@@ -121,6 +121,17 @@ Content.findAll = function (callback){
     .nodeify(callback);
 };
 
+Content.findGreaterThan = function(id){
+  console.log('find > ', id);
+  return knex.select('id').from('content')
+    .where('id', '>', id)
+    .orderBy('id', 'asc')
+    .limit(100)
+    .then(function(rows) {
+      return _.pluck(rows, 'id');
+    });
+};
+
 Content.addToList = function(id){
   this.get(id).then(function(item){
     item.getType();
