@@ -19,6 +19,8 @@ var Queue = require('modules/core/server/circularQueue');
 var ContentController = function(){
 };
 
+ContentController.key_youtube = 'queue:youtube';
+ContentController.key_url = 'queue:url';
 
 /**
  * Update content queue
@@ -36,21 +38,30 @@ ContentController.update = function(){
  */
 ContentController.init = function(req, res){
   var q = new Queue('queue:content');
-  return q.clear().then(function(){
+  Queue.clear(ContentController.key_url);
+  Queue.clear(ContentController.key_youtube);
+  return q.clear()
+    .then(function(){
       return q.last();
     })
     .then(Content.findGreaterThan)
-    .then(function(val){
-      if(val.length>0){
-        return q.add(val);
-      }
+    .map(function(id){
+      return Content.get(id)
+        .then(ContentController.addToQueue);
     })
+//    .then(function(val){
+//      if(val.length>0){
+//        return q.add(val);
+//      }
+//    })
     .then(function(result){
+      console.log(result);
       res.json({res: result});
-    })
-    .catch(function(err){
-      // todo
     });
+//    .catch(function(err){
+      // todo
+//      console.log(err);
+//    });
 };
 
 
@@ -74,6 +85,19 @@ ContentController.list = function (req, res) {
     });
 };
 
+ContentController.addToQueue = function(item){
+  var type = item.getType();
+  switch(type.type){
+    case 'tweet':
+      break;
+    case 'url':
+      var qurl = new Queue(ContentController.key_url);
+      return qurl.add(item.data.id);
+    case 'youtube':
+      var qyt = new Queue(ContentController.key_youtube);
+      return qyt.add(item.data.id);
+  }
+};
 
 /**
  * Show the current content item
@@ -128,8 +152,16 @@ var update = function(){
       });
 };
 
-exports.next = function (req, res){
-  return redis.llen('queue:content').then(function(val){
+ContentController.next = function (req, res){
+  var q = new Queue('queue:content');
+  return q.next()
+    .then(Content.get)
+    .then(function(result){
+      return result;
+    });
+
+/*
+    redis.llen('queue:content').then(function(val){
     if(val==='0'){
       return {len: val};
     }
@@ -152,7 +184,7 @@ exports.next = function (req, res){
 //  .onPossiblyUnhandledRejection(function(e, promise) {
 //        throw e;
 //  });
-
+*/
 };
 
 /*
