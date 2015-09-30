@@ -8,7 +8,13 @@ var config = require('../config'),
   chalk = require('chalk'),
   path = require('path');
 
-var knex = require('knex')(config.db.knex);
+
+console.log('--');
+console.log(chalk.green('Knex'));
+console.log(chalk.green('Host:\t', config.knex.connection.host));
+console.log(chalk.green('Database:\t', config.knex.connection.database));
+
+var knex = require('knex')(config.knex);
 
 module.exports.knex = knex;
 

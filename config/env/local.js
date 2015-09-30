@@ -10,19 +10,19 @@ module.exports = {
     options: {
       user: '',
       pass: ''
+    }
+  },
+  knex: {
+    client: 'mysql',
+    connection: {
+      host: '127.0.0.1',
+      user: 'root',
+      password: 'root',
+      database: 'sproutup_db'
     },
-    knex: {
-      client: 'mysql',
-      connection: {
-        host: '127.0.0.1',
-        user: 'root',
-        password: 'root',
-        database: 'sproutup_db'
-      },
-      pool: {
-        min: 2,
-        max: 10
-      }
+    pool: {
+      min: 2,
+      max: 10
     }
   }
 };
