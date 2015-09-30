@@ -13,36 +13,33 @@ var knex = require('config/lib/knex').knex,
 
 //var Promise = require('bluebird');
 var LinkedAccount = require('./linkedAccount.model');
+var Queue = require('modules/core/server/circularQueue');
 
-/**
- * Show the current content item
- */
-exports.read = function (req, res) {
-  res.json(req.content);
-};
+var LinkedAccountController = function(){
 
-
-/**
- * List of Linked Accounts
- */
-exports.list = function (req, res) {
-  LinkedAccount.findAllTwitterAccounts()
-    .then(function(data){
-      res.json({error: false, data: data});
-    })
-    .catch(function(err){
-       return res.status(400).send({
-        message: errorHandler.getErrorMessage(err)
-      });
-    });
 };
 
 /**
  * Add all content to the queue
  */
-exports.init = function (req, res) {
-  var _self = this;
-//  Contents.forge()
+LinkedAccountController.init = function (req, res) {
+  var q = new Queue('queue:linked:account');
+  return q.clear()
+    .then(function(){
+      return q.last();
+    })
+    .then(LinkedAccount.findGreaterThan)
+    .then(function(val){
+      if(val.length>0){
+        return q.add(val);
+      }
+    })
+    .then(function(result){
+      console.log(result);
+      res.json({res: result});
+    });
+
+  //  Contents.forge()
 //    .fetch()
 //    .then(function (collection) {
 //      redis.del('queue:content');
@@ -59,6 +56,32 @@ exports.init = function (req, res) {
 //      });
 //  });
 };
+
+
+
+/**
+ * Show the current content item
+ */
+LinkedAccountController.read = function (req, res) {
+  res.json(req.content);
+};
+
+
+/**
+ * List of Linked Accounts
+ */
+LinkedAccountController.list = function (req, res) {
+  LinkedAccount.findAllTwitterAccounts()
+    .then(function(data){
+      res.json({error: false, data: data});
+    })
+    .catch(function(err){
+       return res.status(400).send({
+        message: errorHandler.getErrorMessage(err)
+      });
+    });
+};
+
 
 /**
  * Add new items to the queue
@@ -99,52 +122,46 @@ exports.addLatest = function (latest_id) {
     });
 };
 
-/*
- *
- */
-exports.setLatestId = function(id, callback){
-  var key = 'queue:linked:account:latest';
-  redis.set(key, id);
-  callback(null);
-};
-
-
-/*
- *
- */
-exports.getLatestId = function(){
-  var key = 'queue:linked:account:latest';
-  return redis.get(key)
-      .then(function(result){
-        if (result === null){
-            return -1;
-        }
-        else{
-            return result;
-        }
-      });
-};
-
 /**
  * Update queue
  */
-exports.update = function(){
-  var _self = this;
-  _self.getLatestId()
-      .then(_self.addLatest)
-      .then(function(result){
-        return result;
-      });
+LinkedAccountController.update = function(){
+  var q = new Queue('queue:linked:account');
+  return q.last()
+    .then(LinkedAccount.findGreaterThan)
+    .then(function(val){
+      if(val.length>0){
+        return q.add(val);
+      }
+    })
+    .then(function(result){
+      console.log(result);
+      return result;
+    });
 };
+
+/*
+ * Add item id to queue based on provider key
+ */
+LinkedAccountController.addToQueue = function(account){
+  switch(account.data.provider_key){
+    case 'twitter':
+      return Queue.add('queue:linked:account:twitter', account.data.id);
+    default:
+      return;
+  }
+};
+
 
 /**
  * Next
  */
-exports.next = function (req, res) {
+LinkedAccountController.next = function (req, res) {
   var _self = this;
   var key = 'queue:linked:account';
+  var q = new Queue(key);
 
-  return redis.rpoplpush(key, key)
+  return q.next()
     .then(function(item){
       if(_.isUndefined(item)){
         console.log('undefined');
@@ -158,13 +175,22 @@ exports.next = function (req, res) {
           console.log('id:', account.data.provider_user_id);
           return twitterService.showUser(account.data.provider_user_id)
             .then(function(user){
-              console.log('show user: ', account);
               console.log('updating ' + user.id_str + '===' + account.data.provider_user_id);
               if(user.id_str === account.data.provider_user_id){
-                console.log('updating', account);
-                account.data.provider_user_name = user.screen_name;
-                account.data.provider_user_image_url = user.profile_image_url_https;
-                return account.update();
+                if(account.data.provider_user_name !== user.screen_name ||
+                account.data.provider_user_image_url !== user.profile_image_url_https){
+                  account.data.provider_user_name = user.screen_name;
+                  account.data.provider_user_image_url = user.profile_image_url_https;
+                  //return account.setCache();
+                  return account.update()
+                    .then(function(result){
+                      redis.del('user:'+user.id);
+                      return result;
+                    });
+                }
+                else{
+                  return 'no change detected';
+                }
               }
               return 'no op';
             });
@@ -183,47 +209,63 @@ exports.next = function (req, res) {
 /**
  * Add all content to the queue
  */
-exports.process = function () {
+LinkedAccountController.process = function () {
   var _self = this;
   var key = 'queue:linked:account';
+  var q = new Queue(key);
 
-  return redis.rpoplpush(key, key)
+  return q.next()
     .then(function(item){
       if(_.isUndefined(item)){
-        console.log('undefined');
+        console.log('empty list');
         return 'empty list';
       }
       console.log('queue:linked:account -> ', item);
       return LinkedAccount.get(item)
-      .then(function(account){
-        if(account.data.provider_key === 'twitter'){
-          console.log('id:', account.data.provider_user_id);
-          return twitterService.showUser(account.data.provider_user_id)
-            .then(function(user){
-//              console.log('show user: ', account);
-//              console.log('updating ' + user.id_str + '===' + account.data.provider_user_id);
-              if(user.id_str === account.data.provider_user_id){
-//                console.log('updating', account);
-                account.data.provider_user_name = user.screen_name;
-                account.data.provider_user_image_url = user.profile_image_url_https;
-                return account.update();
-              }
-              return 'no op';
-            });
+      .then(LinkedAccountController.refresh);
+    });
+};
+
+/*
+ * Refresh the account object using GET users/show to make sure we are using 
+ * the most recent profile_image_url or profile_image_url_https. The URL may have 
+ * changed, which happens for instance when the user updates their profile image.
+ */
+LinkedAccountController.refresh = function(account){
+  if(account.data.provider_key === 'twitter'){
+    return twitterService.showUser(account.data.provider_user_id)
+      .then(function(user){
+        if(user.id_str === account.data.provider_user_id){
+          if(account.data.provider_user_name !== user.screen_name ||
+          account.data.provider_user_image_url !== user.profile_image_url_https){
+            account.data.provider_user_name = user.screen_name;
+            account.data.provider_user_image_url = user.profile_image_url_https;
+            //return account.setCache();
+            return account.update()
+              .then(function(){
+                return account.setCache();
+              })
+              .then(function(result){
+                redis.del('user:'+user.id);
+                return result;
+              });
+          }
+          else{
+            console.log('no change');
+            return 'no change detected';
+          }
         }
-        return {};
-      })
-      .then(function(result){
-        return result;
+        return 'no op';
       });
-    })
-    .catch(console.log.bind(console));
+  }
+  return {};
+
 };
 
 /**
  * Content middleware
  */
-exports.linkedAccountByID = function (req, res, next, id) {
+LinkedAccountController.linkedAccountByID = function (req, res, next, id) {
   LinkedAccount.get(id).then(function(result){
     req.content = result;
     next();
@@ -247,3 +289,5 @@ exports.linkedAccountByID = function (req, res, next, id) {
 //    next();
 //  });
 };
+
+module.exports = LinkedAccountController;

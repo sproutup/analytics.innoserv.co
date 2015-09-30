@@ -37,6 +37,17 @@ LinkedAccount.key = function(id){
   return key;
 };
 
+LinkedAccount.findGreaterThan = function(id){
+  console.log('find > ', id);
+  return knex.select('id').from('linked_account')
+    .where('id', '>', id)
+    .orderBy('id', 'asc')
+    .limit(100)
+    .then(function(rows) {
+      return _.pluck(rows, 'id');
+    });
+};
+
 LinkedAccount.prototype.update = function(){
   var _self = this;
   console.log('updating: ', _self.data.id);

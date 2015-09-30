@@ -44,6 +44,32 @@ CircularQueue.prototype.add = function(val){
   }
 };
 
+/*
+ * Add value to queue
+ */
+CircularQueue.add = function(key, val){
+  if (val instanceof Array) {
+    console.log('add: ', val.length);
+    // add the value and set the last value
+    return redis.pipeline()
+      .lpush(key, val)
+      .exec()
+      .then(function(){
+        return val;
+      });
+  } else {
+    console.log('add: ', val);
+    // add the value and set the last value
+    return redis.pipeline()
+      .lpush(key, val)
+      .exec()
+      .then(function(){
+        return val;
+      });
+  }
+};
+
+
 CircularQueue.prototype.last = function(){
   console.log('last: ', this.m.last);
   return redis.get(this.m.last)

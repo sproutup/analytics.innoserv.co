@@ -144,7 +144,7 @@ TwitterService.showUser = function(id){
       friends: data[0].friends_count,
       statuses: data[0].statuses_count
     };
-    console.log('twitter data: ', user);
+    console.log('updating twitter stats: ', user);
     redis.hmset('twitter:user:'+id, user);
     return data[0];
   })

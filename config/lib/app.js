@@ -43,21 +43,21 @@ module.exports.init = function init(callback) {
 
   bookshelf.connect(function (db){
     var app = express.init(db);
-//    new CronJob('0 */1 * * * *',
-//        function() {
-//          console.log('Check for new linked accounts');
-//          LinkedAccountController.update();
-//        },
-//        null,
-//        true);
-//
-//    new CronJob('*/10 * * * * *',
-//        function() {
-//          LinkedAccountController.process();
-//        },
-//        null,
-//        true);
-//
+    new CronJob('0 */1 * * * *',
+        function() {
+          console.log('Check for new linked accounts');
+          LinkedAccountController.update();
+        },
+        null,
+        true);
+
+    new CronJob('*/10 * * * * *',
+        function() {
+          LinkedAccountController.process();
+        },
+        null,
+        true);
+
     TwitterService.quotaStatusesShowReset();
     TwitterService.quotaStatusesRetweetsReset();
 //
