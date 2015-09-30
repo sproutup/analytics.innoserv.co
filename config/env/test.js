@@ -26,6 +26,11 @@ module.exports = {
     }
   },
   port: process.env.PORT || 3001,
+  redis: {
+    port: 6379,          // Redis port
+    host: '127.0.0.1',   // Redis host
+    db: 1
+  },
   app: {
     title: defaultEnvConfig.app.title + ' - Test Environment'
   },

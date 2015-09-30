@@ -1,7 +1,5 @@
 EnvironmentConfigurationMetadata:
   Description: Analytics server standard configuration.
-  DateModified: '1434116451000'
-  DateCreated: '1434116451000'
 AWSConfigurationTemplateVersion: 1.1.0.0
 EnvironmentTier:
   Name: WebServer
@@ -33,4 +31,5 @@ OptionSettings:
     TWITTER_CONSUMER_SECRET: wX63yDWo4HRYRWNbd3GIHG0UGnOw7sXU01HHyecYYTa1hMUDI3
     TWITTER_ACCESS_TOKEN: 2945733392-8xR1BCfIN4Iq9kGISYcDSxWikcgKyuxW2uHWG5S
     TWITTER_ACCESS_SECRET: 57CHtTKYaTknC4eGwUGU3V8SjIR104X0XSacrecu5tCcr
-
+    REDIS_PORT: 6379
+    REDIS_HOST: develop.2yq2tv.0001.usw2.cache.amazonaws.com

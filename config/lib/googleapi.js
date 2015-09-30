@@ -11,7 +11,6 @@ console.log('--');
 console.log(chalk.green('Google API'));
 console.log(chalk.green('clientID:\t', config.google.clientID));
 console.log(chalk.green('callbackURL:\t', config.google.callbackURL));
-console.log('--');
 // Prod
 //var CLIENT_ID = "200067319298-cpblm10r8s9o29kjgtahjek2eib7eigk.apps.googleusercontent.com";
 //var CLIENT_SECRET = "nQ4NK9cKoPl8fWXDF9V-PsTU";

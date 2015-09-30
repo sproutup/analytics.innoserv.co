@@ -21,6 +21,11 @@ module.exports = {
       stream: 'access.log'
     }
   },
+  redis: {
+    port: process.env.REDIS_PORT || 6379, // Redis port
+    host: process.env.REDIS_HOST || '127.0.0.1', // Redis host
+    db: process.env.REDIS_DB || 0  // Redis databases
+  },
   facebook: {
     clientID: process.env.FACEBOOK_ID || 'APP_ID',
     clientSecret: process.env.FACEBOOK_SECRET || 'APP_SECRET',

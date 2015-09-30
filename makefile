@@ -20,7 +20,7 @@ init:
 
 recreate: terminate create
 
-create: init
+create: init config-put
 	eb create $(application_name)-$(environment_name) -c $(application_name)-$(environment_name)-$(domain) --cfg $(configuration)-$(environment_name)
 
 terminate: init
@@ -51,8 +51,8 @@ node:
 config-save:
 	eb config save $(configuration) --cfg $(configuration)
 
-config:
-	eb config $(configuration) --cfg $(configuration)
+config: init config-put
+	eb config $(application_name)-$(environment_name) --cfg $(application_name)-$(environment_name)
 
-config-put:
-	eb config put $(configuration)
+config-put: init
+	eb config put $(application_name)-$(environment_name)

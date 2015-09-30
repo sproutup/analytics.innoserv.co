@@ -24,6 +24,11 @@ module.exports = {
   app: {
     title: defaultEnvConfig.app.title + ' - Development Environment'
   },
+  redis: {
+    port: process.env.REDIS_PORT || 6379, // Redis port
+    host: process.env.REDIS_HOST || '127.0.0.1', // Redis host
+    db: process.env.REDIS_DB || 0  // Redis databases
+  },
   knex: {
     client: 'mysql',
     connection: {
