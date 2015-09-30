@@ -3,7 +3,7 @@ FROM node:0.12.4
 ENV DEBIAN_FRONTEND noninteractive
 
 # update
-RUN apt-get update -qq && apt-get install -y build-essential
+RUN apt-get update -qq && apt-get install -y build-essential libkrb5-dev
 RUN npm install -g npm@latest 
 RUN npm install -g bower 
 RUN npm install -g gulp
