@@ -12,6 +12,19 @@ module.exports = {
     // Enable mongoose debug mode
     debug: process.env.MONGODB_DEBUG || false
   },
+  knex: {
+    client: 'mysql',
+    connection: {
+      host: process.env.MYSQL_HOST || '127.0.0.1',
+      user: process.env.MYSQL_USER || 'root',
+      password: process.env.MYSQL_PASSWORD || 'root',
+      database: process.env.MYSQL_DATABASE || 'sproutup_db'
+    },
+    pool: {
+      min: 2,
+      max: 10
+    }
+  },
   log: {
     // Can specify one of 'combined', 'common', 'dev', 'short', 'tiny'
     format: 'combined',

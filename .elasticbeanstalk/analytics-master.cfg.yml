@@ -23,10 +23,10 @@ OptionSettings:
     EnvironmentType: LoadBalanced
   aws:elasticbeanstalk:application:environment:
     PORT: 3000
-    MYSQLHOST: sproutupdev.ctdo662vilif.us-west-2.rds.amazonaws.com:3306
-    MYSQLUSER: dbadmin
-    MYSQLPASSWORD: 1nter$Tellar
-    MYSQLDATABASE: sproutup_prod
+    MYSQL_HOST: sproutupdev.ctdo662vilif.us-west-2.rds.amazonaws.com:3306
+    MYSQL_USER: dbadmin
+    MYSQL_PASSWORD: 1nter$Tellar
+    MYSQL_DATABASE: sproutup_prod
     GOOGLE_ID: 200067319298-gu6eos6o5cmeaat2tsmlu1s6rk5gjpnd.apps.googleusercontent.com 
     GOOGLE_SECRET: kN13wxKxV1RuIFsPDnr2Y8H8
     TWITTER_CONSUMER_KEY: UFpVmMJJ7OOUA9SYh73WjCQ05

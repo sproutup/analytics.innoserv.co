@@ -42,6 +42,9 @@ start:
 run:
 	docker run -d -p 3000:3000 --name $(application_name) --env-file local-env.list $(application_name)
 
+runia:
+	docker run -i -p 3000:3000 --env-file local-env.list -t analytics /bin/bash
+
 delete: init
 	docker rm $(application_name)
 
