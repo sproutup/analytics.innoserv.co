@@ -16,7 +16,7 @@ COPY . /usr/src/app/
 RUN rm -rf /usr/src/app/node_modules
 RUN cd /usr/src/app; npm install
 
-CMD [ "gulp" ]
+CMD [ "npm", "start" ]
 
 # Port 3000 for server
 # Port 35729 for livereload
