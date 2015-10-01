@@ -9,6 +9,7 @@ EnvironmentTier:
 SolutionStack: 64bit Amazon Linux 2015.03 v1.4.1 running Docker 1.6.0
 OptionSettings:
   aws:elasticbeanstalk:command:
+    Timeout: 1800
     BatchSize: '30'
     BatchSizeType: Percentage
   aws:autoscaling:asg:
