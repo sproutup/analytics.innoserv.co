@@ -9,8 +9,7 @@ var config = require('../config'),
   cookieParser = require('cookie-parser'),
   passport = require('passport'),
   socketio = require('socket.io'),
-  session = require('express-session'),
-  MongoStore = require('connect-mongo')(session);
+  session = require('express-session');
 
 // Define the Socket.io configuration method
 module.exports = function (app, db) {

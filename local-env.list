@@ -1,5 +1,5 @@
-MYSQLHOST: localhost
-MYSQLUSER: root
-MYSQLPASSWORD: root
-MYSQLDATABASE: sproutup_db
+MYSQL_HOST: localhost
+MYSQL_USER: root
+MYSQL_PASSWORD: root
+MYSQL_DATABASE: sproutup_db
 
