@@ -1,0 +1,17 @@
+{
+  "AWSEBDockerrunVersion": "1",
+  "Authentication": {
+    "Bucket": "co-sproutup-dockerhub",
+    "Key": "config.json"
+  },
+  "Image": {
+    "Name": "peterandersen/analytics",
+    "Update": "true"
+  },
+  "Ports": [
+    {
+      "ContainerPort": "3000"
+    }
+  ],
+  "Logging": "/var/log/nodejs"
+}

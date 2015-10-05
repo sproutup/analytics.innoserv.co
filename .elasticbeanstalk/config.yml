@@ -8,3 +8,5 @@ global:
   default_region: us-west-2
   profile: null
   sc: git
+deploy:
+  artifact: Dockerrun.aws.json
