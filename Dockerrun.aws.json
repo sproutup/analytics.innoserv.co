@@ -2,7 +2,7 @@
   "AWSEBDockerrunVersion": "1",
   "Authentication": {
     "Bucket": "co-sproutup-dockerhub",
-    "Key": "config.json"
+    "Key": "dockerconfig"
   },
   "Image": {
     "Name": "peterandersen/analytics",
