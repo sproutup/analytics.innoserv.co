@@ -69,6 +69,18 @@ CircularQueue.add = function(key, val){
   }
 };
 
+CircularQueue.prototype.list = function(){
+  return redis.lrange(this.m.key, 0, -1)
+    .then(function(result){
+      if (result === null){
+        return [];
+      }
+      else{
+        return result;
+      }
+    });
+};
+
 
 CircularQueue.prototype.last = function(){
   console.log('last: ', this.m.last);

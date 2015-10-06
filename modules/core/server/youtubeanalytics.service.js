@@ -9,7 +9,7 @@ var Promise = require('bluebird');
 var analytics = googleapi.analytics('v3');
 var youtube = googleapi.youtube('v3');
 
-Promise.promisifyAll(youtube.channels);  
+Promise.promisifyAll(youtube.channels);
 
 var YoutubeAnalyticsService = function(){
 };
@@ -79,6 +79,10 @@ YoutubeAnalyticsService.getChannels = function(){
   return youtube.channels.listAsync({auth: oauth2Client, part: 'id,snippet,statistics', mine: 'true'});
 };
 
+YoutubeAnalyticsService.getVideos = function(){
+  return youtube.videos.listAsync({auth: oauth2Client, part: 'id,snippet,statistics', mine: 'true'});
+};
+
 YoutubeAnalyticsService.updateChannel = function(channel, user_id) {
 
   var values = {
@@ -94,7 +98,7 @@ YoutubeAnalyticsService.updateChannel = function(channel, user_id) {
       return redis.sadd('youtube:channels:user:' + user_id, channel.id);
     });
 };
- 
+
 YoutubeAnalyticsService.process = function(item) {
   var _self = this;
   console.log('youtube handler: ', item.id);

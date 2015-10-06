@@ -14,11 +14,14 @@ module.exports = function (app) {
   app.route('/api/analytics/account/init') //.all(articlesPolicy.isAllowed)
     .get(account.init);
 
-  app.route('/api/analytics/account/:accountId')//.all(articlesPolicy.isAllowed)
-    .get(account.read);
+  app.route('/api/analytics/account/queue') //.all(articlesPolicy.isAllowed)
+    .get(account.listQueue);
 
   app.route('/api/analytics/account/next') //.all(articlesPolicy.isAllowed)
     .get(account.next);
+
+  app.route('/api/analytics/account/:accountId')//.all(articlesPolicy.isAllowed)
+    .get(account.read);
 
   // Finish by binding the article middleware
   app.param('accountId', account.accountById);

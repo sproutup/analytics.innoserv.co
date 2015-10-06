@@ -9,25 +9,28 @@ var google = require('googleapis');
 // var youtubeAnalytics = google.youtubeAnalytics('v1');
 //require('./analyticsAccountSummary');
 var Bookshelf = require('../../../config/lib/bookshelf').bookshelf;
+var Promise = require('bluebird');
 var account = null;
 var knex = require('config/lib/knex').knex,
     redis = require('config/lib/redis');
 
-var AnalyticsAccount = function() {
-
-};
-var LinkedAccount = function(data) {
+var AnalyticsAccount = function(data) {
   this.id = -1;
   this.schema = {
     id: null,
     user_id: null,
+    username: null,
     provider: null,
     access_token: null,
     refresh_token: null,
-    scope: null
+    scope: null,
+    expires_at: null
   };
   this.data = this.sanitize(data);
 };
+
+AnalyticsAccount.table = 'analytics_account';
+AnalyticsAccount.key = 'analytics_account';
 
 AnalyticsAccount.prototype.sanitize = function (data) {
   data = data || {};
@@ -84,16 +87,20 @@ AnalyticsAccount.prototype.loadFromCache = function(){
 };
 
 AnalyticsAccount.prototype.clearCache = function() {
-    var _self = this;
-    console.log('about to clear');
-    return redis.del('analytics_account:' + _self.data.id);
+  return redis.del(this.key());
 };
 
+/*
+ * update db and clear cache
+ */
 AnalyticsAccount.prototype.update = function() {
   var _self = this;
   return knex('analytics_account')
     .where('id', _self.data.id)
-    .update(_.pick(_self.data, ['access_token', 'is_valid', 'expires_at']));    
+    .update(_.pick(_self.data, ['access_token', 'is_valid', 'expires_at']))
+    .then(function(){
+      return _self.clearCache();
+    });
 };
 
 AnalyticsAccount.prototype.checkToken = function(account) {
@@ -102,15 +109,15 @@ AnalyticsAccount.prototype.checkToken = function(account) {
 };
 
 AnalyticsAccount.prototype.refreshToken = function() {
-    var _self = this;
+  var _self = this;
 
-console.log('oauth', oauth2Client);
-    return oauth2Client.refreshAccessTokenAsync().then(function(tokens) {
-        // your access_token is now refreshed and stored in oauth2Client
-        // store these new tokens in a safe place (e.g. database)
-        _self.data.expires_at = new Date(tokens[0].expiry_date);
-        _self.data.access_token = tokens[0].access_token;
-    });
+  return oauth2Client.refreshAccessTokenAsync().then(function(tokens) {
+    // your access_token is now refreshed and stored in oauth2Client
+    // store these new tokens in a safe place (e.g. database)
+    console.log('token: ', tokens[0]);
+    _self.data.expires_at = new Date(tokens[0].expiry_date);
+    _self.data.access_token = tokens[0].access_token;
+  });
 };
 
 /*
@@ -127,21 +134,28 @@ AnalyticsAccount.prototype.setCredentials = function() {
  * Get up to date tokens
  */
 AnalyticsAccount.prototype.getToken = function() {
-    var _self = this;
-    var tokenExpired = _self.checkToken();
-    // If the token is expired, refresh the token, update the DB, and clear the cache
-    if (tokenExpired === true) {
-        _self.refreshToken()
-            .then(function(result) {
-                _self.update()
-                    .then(function() {
-                        _self.clearCache();
-                    });
-            });
-    } else {
-        console.log('the token is fine. returning: ', _self.data.access_token);
-        return _self.data;
-    }
+  var _self = this;
+
+  // set credentials before using google api
+  this.setCredentials();
+
+  var tokenExpired = _self.checkToken();
+  // If the token is expired, refresh the token, update the DB, and clear the cache
+  if (tokenExpired === true) {
+    console.log('token expired');
+    return _self.refreshToken()
+      .then(function(result) {
+        return _self.update();
+      });
+  }
+  else {
+    console.log('the token is fine. returning: ', _self.data.access_token);
+    return Promise.resolve().then(function() {
+      return _self.data;
+    }).catch(function(e){
+      console.error(e.stack);
+    });
+  }
 };
 
 AnalyticsAccount.findByUserId = function(user_id){
@@ -151,7 +165,7 @@ AnalyticsAccount.findByUserId = function(user_id){
     .first();
 };
 
-LinkedAccount.prototype.existsCache = function(){
+AnalyticsAccount.prototype.existsCache = function(){
   return redis.exists(this.key());
 };
 
@@ -190,6 +204,17 @@ AnalyticsAccount.get = function(id){
         .then(function(result){
           return item;
         });
+    });
+};
+
+AnalyticsAccount.findGreaterThan = function(id){
+  console.log('find > ', id);
+  return knex.select('id').from(AnalyticsAccount.table)
+    .where('id', '>', id)
+    .orderBy('id', 'asc')
+    .limit(100)
+    .then(function(rows) {
+      return _.pluck(rows, 'id');
     });
 };
 

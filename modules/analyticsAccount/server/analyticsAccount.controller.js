@@ -8,10 +8,13 @@ var errorHandler = require(path.resolve('./modules/core/server/errors.controller
 var AnalyticsAccount = require('modules/analyticsAccount/server/analyticsAccount.model');
 var Queue = require('modules/core/server/circularQueue');
 var redis = require('config/lib/redis');
+var youtube = require('modules/core/server/youtubeanalytics.service');
 var _ = require('lodash');
 
 var AnalyticsAccountController = function(){
 };
+
+AnalyticsAccount.key = 'queue:analytics_account';
 
 /**
  * Add all content to the queue
@@ -35,11 +38,21 @@ AnalyticsAccountController.init = function (req, res) {
     });
 };
 
+AnalyticsAccountController.listQueue = function(req, res){
+  console.log('list queue');
+  var q = new Queue('queue:analytics:account');
+  return q.list()
+    .then(function(result){
+      res.json({res: result});
+    })
+    .catch(console.log.bind(console));
+};
+
 AnalyticsAccountController.next = function(req, res){
   var _self = this;
-  var key = 'queue:analytics:account';
-  var q = new Queue(key);
+  //var q = new Queue(AnalyticsAccountController.key);
 
+  var q = new Queue('queue:analytics:account');
   return q.next()
     .then(function(item){
       if(_.isUndefined(item)){
@@ -50,14 +63,25 @@ AnalyticsAccountController.next = function(req, res){
       return AnalyticsAccount.get(item)
       .then(function(account){
         console.log('account:', account.data.scope);
-        return {};
+        if(account.data.scope.indexOf('youtube.readonly')>0){
+          console.log(account.data.scope.indexOf('youtube.readonly'));
+          account.getToken()
+            .then(function(result){
+              console.log('getting channels');
+              youtube.getChannels()
+                .map(function(channel){
+                console.log(channel.items);
+              });
+              return result;
+            });
+        }
+        return account;
       })
       .then(function(result){
-        console.log('update result ', result);
         res.json(result);
       });
-    })
-    .catch(console.log.bind(console));
+    });
+//    .catch(console.log.bind(console));
 
 };
 
