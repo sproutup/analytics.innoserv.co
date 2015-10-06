@@ -9,7 +9,7 @@ var content = require('./content.controller');
 
 module.exports = function (app) {
 
-  app.use(require('express-promise')());
+//  app.use(require('express-promise')());
 
   // Articles collection routes
   app.route('/api/content') //.all(articlesPolicy.isAllowed)

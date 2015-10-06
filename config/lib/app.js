@@ -4,7 +4,6 @@
  * Module dependencies.
  */
 var config = require('../config'),
-  mongoose = require('./mongoose'),
   bookshelf = require('./bookshelf'),
   redis = require('./redis'),
   googleapi = require('./googleapi'),

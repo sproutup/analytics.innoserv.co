@@ -16,40 +16,71 @@ var knex = require('config/lib/knex').knex,
 var AnalyticsAccount = function() {
 
 };
-
-AnalyticsAccount.prototype.getAll = function(callback) {
-    return knex.select('*')
-        .from('analytics_account')
-        .nodeify(callback);
+var LinkedAccount = function(data) {
+  this.id = -1;
+  this.schema = {
+    id: null,
+    user_id: null,
+    provider: null,
+    access_token: null,
+    refresh_token: null,
+    scope: null
+  };
+  this.data = this.sanitize(data);
 };
 
-AnalyticsAccount.prototype.checkCache = function(id) {
-    return redis.exists('analytics_account:' + id);
+AnalyticsAccount.prototype.sanitize = function (data) {
+  data = data || {};
+  return _.pick(_.defaults(data, this.schema), _.keys(this.schema));
 };
 
-AnalyticsAccount.prototype.loadFromCache = function(id) {
-    var _self = this;
-    return redis.hgetall('analytics_account:' + id)
-    .then(function(result){
-        console.log('loading from cache: ', result);
-        _self.data = result;
-    });
+AnalyticsAccount.key = function(id){
+  var key = 'analytics:account:' + id;
+  return key;
+};
+
+AnalyticsAccount.prototype.key = function(){
+  var key = 'analytics:account:' + this.id;
+  return key;
+};
+
+AnalyticsAccount.getAll = function(callback) {
+  return knex.select('*')
+    .from('analytics_account')
+    .nodeify(callback);
+};
+
+AnalyticsAccount.prototype.existsCache = function(){
+  return redis.exists(this.key());
 };
 
 AnalyticsAccount.prototype.loadFromDB = function(id) {
-    var _self = this;
-    return knex('analytics_account')
-        .where('id', id)
-        .first()
-        .then(function(result) {
-            console.log('loading from DB: ', result);
-            _self.data = result;
-        });
+  var _self = this;
+  return knex('analytics_account')
+    .where('id', id)
+    .first()
+    .then(function(result) {
+      console.log('loading from DB: ', result);
+      _self.data = result;
+      return _self;
+    });
 };
 
-AnalyticsAccount.prototype.setCache = function() {
-    var _self = this;
-    return redis.hmset('analytics_account:' + this.data.id, _self.data);
+AnalyticsAccount.prototype.setCache = function(){
+  var _self = this;
+  return redis.hmset(this.key(), this.data)
+    .then(function(result){
+      return _self;
+    });
+};
+
+AnalyticsAccount.prototype.loadFromCache = function(){
+  var _self = this;
+  return redis.hgetall(this.key())
+    .then(function(result){
+      _self.data = result;
+      return _self;
+    });
 };
 
 AnalyticsAccount.prototype.clearCache = function() {
@@ -120,6 +151,10 @@ AnalyticsAccount.findByUserId = function(user_id){
     .first();
 };
 
+LinkedAccount.prototype.existsCache = function(){
+  return redis.exists(this.key());
+};
+
 AnalyticsAccount.getByUserId = function(user_id){
     console.log('user_id:', user_id);
   return this.findByUserId(user_id)
@@ -134,31 +169,28 @@ AnalyticsAccount.getByUserId = function(user_id){
 };
 
 /*
- * Get one anayltics account with up to date tokens
+ * try to load from from cache otherwise load from DB
+ * and then add to cache
  */
-AnalyticsAccount.get = function(id) {
-    var item = new AnalyticsAccount();
-    // See if we have the account in cache
-    return item.checkCache(id)
-        .then(function(result) {
-            // Load cache or load from DB and set cache
-            if (result === 1) {
-                return item.loadFromCache(id);
-            } else {
-                return item.loadFromDB(id)
-                    .then(function(result) {
-                        return item.setCache();
-                    })
-                    .then(function(result) {
-                        return item.data;
-                    });
-            }
+AnalyticsAccount.get = function(id){
+  var item = new AnalyticsAccount();
+  item.id = id;
+  return item.existsCache(id)
+    .then(function(result){
+      if(result===1){
+        // load from cache
+        return item.loadFromCache(id);
+      }
+      // load from db
+      return item.loadFromDB(id)
+        .then(function(result){
+          // add to cache
+          return item.setCache();
         })
-        .then(function(result) {
-            item.setCredentials();
-            return item.getToken(result);
+        .then(function(result){
+          return item;
         });
-
+    });
 };
 
 module.exports = AnalyticsAccount;

@@ -3,11 +3,11 @@
 /**
  * Module dependencies.
  */
-var knex = require('config/lib/knex').knex,
-  config = require('config/config'),
-  redis = require('config/lib/redis'),
-  _ = require('lodash'),
-  errorHandler = require('modules/core/server/errors.controller');
+var knex = require('config/lib/knex').knex;
+var config = require('config/config');
+var redis = require('config/lib/redis');
+var  _ = require('lodash');
+var errorHandler = require('modules/core/server/errors.controller');
 var TwitterService = require('modules/core/server/twitter.service');
 var YoutubeAnalyticsService = require('modules/core/server/youtubeanalytics.service');
 var P = require('bluebird');

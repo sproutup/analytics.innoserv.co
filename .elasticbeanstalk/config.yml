@@ -1,6 +1,8 @@
 branch-defaults:
   develop:
     environment: analytics-develop
+deploy:
+  artifact: Dockerrun.aws.json
 global:
   application_name: develop
   default_ec2_keyname: endurance

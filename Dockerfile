@@ -12,9 +12,13 @@ RUN npm install -g gulp
 RUN mkdir -p /usr/src/app
 WORKDIR /usr/src/app
 
-COPY . /usr/src/app/
+COPY package.json /usr/src/app/
+
 # RUN rm -rf /usr/src/app/node_modules
-RUN cd /usr/src/app; npm install
+# RUN cd /usr/src/app; npm install
+# -d 
+
+COPY . /usr/src/app/
 
 CMD [ "npm", "start" ]
 
