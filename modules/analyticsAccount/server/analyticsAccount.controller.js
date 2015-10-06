@@ -50,30 +50,6 @@ AnalyticsAccountController.next = function(req, res){
       return AnalyticsAccount.get(item)
       .then(function(account){
         console.log('account:', account.data.scope);
-        if(account.data.provider_key === 'twitter'){
-          console.log('id:', account.data.provider_user_id);
-          return twitterService.showUser(account.data.provider_user_id)
-            .then(function(user){
-              console.log('updating ' + user.id_str + '===' + account.data.provider_user_id);
-              if(user.id_str === account.data.provider_user_id){
-                if(account.data.provider_user_name !== user.screen_name ||
-                account.data.provider_user_image_url !== user.profile_image_url_https){
-                  account.data.provider_user_name = user.screen_name;
-                  account.data.provider_user_image_url = user.profile_image_url_https;
-                  //return account.setCache();
-                  return account.update()
-                    .then(function(result){
-                      redis.del('user:'+user.id);
-                      return result;
-                    });
-                }
-                else{
-                  return 'no change detected';
-                }
-              }
-              return 'no op';
-            });
-        }
         return {};
       })
       .then(function(result){
