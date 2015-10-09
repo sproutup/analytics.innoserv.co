@@ -30,7 +30,7 @@ var AnalyticsAccount = function(data) {
 };
 
 AnalyticsAccount.table = 'analytics_account';
-AnalyticsAccount.key = 'analytics_account';
+AnalyticsAccount.key = 'analytics:account';
 
 AnalyticsAccount.prototype.sanitize = function (data) {
   data = data || {};

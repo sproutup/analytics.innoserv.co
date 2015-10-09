@@ -131,11 +131,12 @@ LinkedAccountController.update = function(){
     .then(LinkedAccount.findGreaterThan)
     .then(function(val){
       if(val.length>0){
+        console.log('update: ', val);
         return q.add(val);
       }
+      return val;
     })
     .then(function(result){
-      console.log(result);
       return result;
     });
 };
