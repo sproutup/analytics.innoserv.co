@@ -6,6 +6,7 @@
 var path = require('path');
 var errorHandler = require(path.resolve('./modules/core/server/errors.controller'));
 var AnalyticsAccount = require('modules/analyticsAccount/server/analyticsAccount.model');
+var YoutubeChannel = require('modules/youtubeChannel/server/youtubeChannel.model');
 var Queue = require('modules/core/server/circularQueue');
 var redis = require('config/lib/redis');
 var youtube = require('modules/core/server/youtubeanalytics.service');
@@ -69,9 +70,18 @@ AnalyticsAccountController.next = function(req, res){
             .then(function(result){
               console.log('getting channels');
               youtube.getChannels()
-                .map(function(channel){
-                console.log(channel.items);
-              });
+                .then(function(channel){
+                  console.log(channel[0].items[0].snippet.title);
+                  var item = channel[0].items[0];
+                  var ytchannel = new YoutubeChannel();
+                  ytchannel.data.id_str = item.id;
+                  ytchannel.data.title = item.snippet.title;
+                  ytchannel.data.user_id = account.data.user_id;
+                  ytchannel.data.description = item.snippet.description;
+                  ytchannel.data.published_at = item.snippet.publishedAt;
+                  ytchannel.data.thumbnail_url = item.snippet.thumbnails.medium.url;
+                  return ytchannel.insert();
+                });
               return result;
             });
         }

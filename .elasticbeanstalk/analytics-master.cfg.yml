@@ -1,7 +1,5 @@
 EnvironmentConfigurationMetadata:
   Description: Analytics server standard configuration.
-  DateModified: '1434116451000'
-  DateCreated: '1434116451000'
 AWSConfigurationTemplateVersion: 1.1.0.0
 EnvironmentTier:
   Name: WebServer
@@ -9,7 +7,7 @@ EnvironmentTier:
 SolutionStack: 64bit Amazon Linux 2015.03 v2.0.2 running Docker 1.7.1
 OptionSettings:
   aws:elasticbeanstalk:command:
-    Timeout: 1800
+    Timeout: 600
     BatchSize: '30'
     BatchSizeType: Percentage
   aws:autoscaling:asg:

@@ -83,7 +83,6 @@ CircularQueue.prototype.list = function(){
 
 
 CircularQueue.prototype.last = function(){
-  console.log('last: ', this.m.last);
   return redis.get(this.m.last)
     .then(function(result){
       if (result === null){

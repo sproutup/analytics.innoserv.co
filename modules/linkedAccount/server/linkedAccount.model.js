@@ -38,7 +38,6 @@ LinkedAccount.key = function(id){
 };
 
 LinkedAccount.findGreaterThan = function(id){
-  console.log('find > ', id);
   return knex.select('id').from('linked_account')
     .where('id', '>', id)
     .orderBy('id', 'asc')

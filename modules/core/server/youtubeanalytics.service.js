@@ -76,11 +76,23 @@ TwitterService.getFlag = function(id){
 */
 
 YoutubeAnalyticsService.getChannels = function(){
-  return youtube.channels.listAsync({auth: oauth2Client, part: 'id,snippet,statistics', mine: 'true'});
+  return youtube.channels
+    .listAsync({auth: oauth2Client, part: 'id,snippet,statistics', mine: 'true'})
+    .then(function(result){return result;})
+    .catch(function(err){
+      console.log('err: ', err.errors[0].message);
+      return [];
+    });
 };
 
 YoutubeAnalyticsService.getVideos = function(){
-  return youtube.videos.listAsync({auth: oauth2Client, part: 'id,snippet,statistics', mine: 'true'});
+  return youtube.videos
+    .listAsync({auth: oauth2Client, part: 'id,snippet,statistics', mine: 'true'})
+    .then(function(result){ return result; })
+    .catch(function(err){
+      console.log('err: ', err.errors[0].message);
+      return [];
+    });
 };
 
 YoutubeAnalyticsService.updateChannel = function(channel, user_id) {
