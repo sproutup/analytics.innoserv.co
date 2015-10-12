@@ -44,7 +44,12 @@ LinkedAccount.findGreaterThan = function(id){
     .orderBy('id', 'asc')
     .limit(100)
     .then(function(rows) {
-      return _.pluck(rows, 'id');
+      if(_.isUndefined(rows)){
+        return [];
+      }
+      else{
+        return _.pluck(rows, 'id');
+      }
     });
 };
 
