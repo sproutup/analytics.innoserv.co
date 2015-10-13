@@ -6,6 +6,7 @@
 var config = require('../config'),
   bookshelf = require('./bookshelf'),
   redis = require('./redis'),
+  dynamoose = require('./dynamoose'),
   googleapi = require('./googleapi'),
   express = require('./express'),
   chalk = require('chalk'),

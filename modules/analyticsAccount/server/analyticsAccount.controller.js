@@ -10,6 +10,9 @@ var YoutubeChannel = require('modules/youtubeChannel/server/youtubeChannel.model
 var Queue = require('modules/core/server/circularQueue');
 var redis = require('config/lib/redis');
 var youtube = require('modules/core/server/youtubeanalytics.service');
+var dynamoose = require('config/lib/dynamoose');
+var UserReach = dynamoose.model('UserReach');
+var YoutubeChannel = dynamoose.model('YoutubeChannel');
 var _ = require('lodash');
 
 var AnalyticsAccountController = function(){
@@ -71,17 +74,32 @@ AnalyticsAccountController.next = function(req, res){
               console.log('getting channels');
               youtube.getChannels()
                 .then(function(channel){
-                  console.log(channel[0].items[0].snippet.title);
+                  console.log(channel[0].items[0].brandingSettings);
                   var item = channel[0].items[0];
                   var ytchannel = new YoutubeChannel();
-                  ytchannel.data.id_str = item.id;
-                  ytchannel.data.title = item.snippet.title;
-                  ytchannel.data.user_id = account.data.user_id;
-                  ytchannel.data.description = item.snippet.description;
-                  ytchannel.data.published_at = item.snippet.publishedAt;
-                  ytchannel.data.thumbnail_url = item.snippet.thumbnails.medium.url;
-                  return ytchannel.insert();
-                });
+                  ytchannel.userId = account.data.user_id;
+                  ytchannel.channelId = item.id;
+                  ytchannel.title = item.snippet.title;
+                  ytchannel.description = item.snippet.description;
+                  ytchannel.published_at = item.snippet.publishedAt;
+                  ytchannel.thumbnail_url = item.snippet.thumbnails.medium.url;
+                  ytchannel.banner_image_url = item.brandingSettings.image.bannerImageUrl;
+                  ytchannel.save().then(function(res){
+                    console.log(res);
+                  });
+                  var reach = new UserReach({
+                    userId: account.data.user_id,
+                    total: 123,
+                    youtube: item.statistics.viewCount
+                  });
+                  reach.save().then(function(){
+                    console.log('boyaa');
+                  });
+                  return true;
+                })
+              .catch(function(err){
+                console.log('couldnt read channels');
+              });
               return result;
             });
         }

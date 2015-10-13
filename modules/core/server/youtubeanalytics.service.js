@@ -77,11 +77,11 @@ TwitterService.getFlag = function(id){
 
 YoutubeAnalyticsService.getChannels = function(){
   return youtube.channels
-    .listAsync({auth: oauth2Client, part: 'id,snippet,statistics', mine: 'true'})
+    .listAsync({auth: oauth2Client, part: 'id,snippet,statistics,brandingSettings', mine: 'true'})
     .then(function(result){return result;})
     .catch(function(err){
       console.log('err: ', err.errors[0].message);
-      return [];
+      throw err;
     });
 };
 
