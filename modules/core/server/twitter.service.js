@@ -149,7 +149,7 @@ TwitterService.showUser = function(id){
     return data[0];
   })
   .catch(function(err){
-    console.log(err);
+    console.log('Error: ', err.statusCode);
     return {err: err};
   });
 };

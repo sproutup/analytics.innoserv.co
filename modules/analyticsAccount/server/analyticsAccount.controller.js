@@ -59,22 +59,23 @@ AnalyticsAccountController.next = function(req, res){
   var q = new Queue('queue:analytics:account');
   return q.next()
     .then(function(item){
+      // return if no data in queue
       if(_.isUndefined(item)){
         console.log('undefined');
         return 'empty list';
       }
+
+      // process this item
       console.log('queue:analytics:account -> ', item);
       return AnalyticsAccount.get(item)
       .then(function(account){
         console.log('account:', account.data.scope);
         if(account.data.scope.indexOf('youtube.readonly')>0){
-          console.log(account.data.scope.indexOf('youtube.readonly'));
           account.getToken()
             .then(function(result){
               console.log('getting channels');
               youtube.getChannels()
                 .then(function(channel){
-                  console.log(channel[0].items[0].brandingSettings);
                   var item = channel[0].items[0];
                   var ytchannel = new YoutubeChannel();
                   ytchannel.userId = account.data.user_id;
@@ -89,8 +90,7 @@ AnalyticsAccountController.next = function(req, res){
                   });
                   var reach = new UserReach({
                     userId: account.data.user_id,
-                    total: 123,
-                    youtube: item.statistics.viewCount
+                    youtube: item.statistics.subscriberCount
                   });
                   reach.save().then(function(){
                     console.log('boyaa');
