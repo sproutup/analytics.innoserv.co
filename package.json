@@ -53,6 +53,7 @@
     "mysql": "^2.8.0",
     "node-pre-gyp": "0.6.4",
     "nodemailer": "^1.4.0",
+    "oauth": "^0.9.14",
     "passport": "~0.2.2",
     "passport-facebook": "^2.0.0",
     "passport-github": "~0.1.5",
