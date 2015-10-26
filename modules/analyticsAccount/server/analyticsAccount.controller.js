@@ -74,33 +74,33 @@ AnalyticsAccountController.next = function(req, res){
           account.getToken()
             .then(function(result){
               console.log('getting channels');
-              youtube.getChannels()
-                .then(function(channel){
-                  var item = channel[0].items[0];
-                  var ytchannel = new YoutubeChannel();
-                  ytchannel.userId = account.data.user_id;
-                  ytchannel.channelId = item.id;
-                  ytchannel.title = item.snippet.title;
-                  ytchannel.description = item.snippet.description;
-                  ytchannel.published_at = item.snippet.publishedAt;
-                  ytchannel.thumbnail_url = item.snippet.thumbnails.medium.url;
-                  ytchannel.banner_image_url = item.brandingSettings.image.bannerImageUrl;
-                  ytchannel.save().then(function(res){
-                    console.log(res);
-                  });
-                  var reach = new UserReach({
-                    userId: account.data.user_id,
-                    youtube: item.statistics.subscriberCount
-                  });
-                  reach.save().then(function(){
-                    console.log('boyaa');
-                  });
-                  return true;
-                })
-              .catch(function(err){
-                console.log('couldnt read channels');
+              return youtube.getChannels();
+            })
+            .then(function(channel){
+              var item = channel[0].items[0];
+              var ytchannel = new YoutubeChannel();
+              ytchannel.userId = account.data.user_id;
+              ytchannel.channelId = item.id;
+              ytchannel.title = item.snippet.title;
+              ytchannel.description = item.snippet.description;
+              ytchannel.published_at = item.snippet.publishedAt;
+              ytchannel.thumbnail_url = item.snippet.thumbnails.medium.url;
+              ytchannel.banner_image_url = item.brandingSettings.image.bannerImageUrl;
+              ytchannel.save().then(function(res){
+                console.log(res);
               });
-              return result;
+              var reach = new UserReach({
+                userId: account.data.user_id,
+                youtube: item.statistics.subscriberCount
+              });
+              reach.save().then(function(){
+                console.log('boyaa');
+              });
+              return true;
+            })
+            .catch(function(err){
+              console.log('couldnt read channels');
+              return err;
             });
         }
         return account;
