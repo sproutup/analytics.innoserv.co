@@ -11,17 +11,23 @@ module.exports = function (app) {
     .get(controller.list);
 //    .post(controller.create);
 
-  app.route('/api/network/:provider/connect')
+  app.route('/api/network/:provider/:userId/connect')
     .get(controller.connect);
 
-  app.route('/api/network/:provider')
+  app.route('/api/user/:userId/network/:provider')
+    .get(controller.read)
+		.delete(controller.delete);
+
+  app.route('/api/network/callback/:token')
     .post(controller.create);
 
   // Single article routes
   app.route('/api/network/user/:userId')
-    .get(controller.read);
+    .get(controller.read)
+    .delete(controller.delete);
 
   // Finish by binding the middleware
-  app.param('userId', controller.networkByID);
+  app.param('userId', controller.networkByUserID);
+  app.param('token', controller.networkByToken);
   app.param('provider', controller.networkByProvider);
 };

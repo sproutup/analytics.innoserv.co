@@ -20,8 +20,19 @@ var NetworkSchema  = new Schema({
     rangeKey: true,
     index: true
   },
-  'key': String,
-  'secret': String
+  token: {
+    type: String,
+    required: true,
+    index: {
+      global: true
+    }
+  },
+  'tokenSecret': String,
+  'verifier': String,
+  'status': {
+    type: Number,
+    default: 0
+  }
 },
 {
   throughput: {read: 15, write: 5}

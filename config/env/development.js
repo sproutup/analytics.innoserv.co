@@ -45,7 +45,7 @@ module.exports = {
     pool: {
       min: 2,
       max: 10
-    }  
+    }
   },
   facebook: {
     clientID: process.env.FACEBOOK_ID || 'APP_ID',
@@ -57,7 +57,9 @@ module.exports = {
     clientSecret: process.env.TWITTER_CONSUMER_SECRET || 'CONSUMER_SECRET',
     accessID: process.env.TWITTER_ACCESS_TOKEN || 'ACCESS_TOKEN',
     accessSecret: process.env.TWITTER_ACCESS_SECRET || 'ACCESS_SECRET',
-    callbackURL: '/api/auth/twitter/callback'
+    callbackURL: 'http://localhost:9000/oauth/1/callback',
+    requestURL: 'https://api.twitter.com/oauth/request_token',
+    authorizeURL: 'https://api.twitter.com/oauth/authorize'
   },
   google: {
     clientID: process.env.GOOGLE_ID || 'APP_ID',
