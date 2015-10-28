@@ -50,7 +50,26 @@ module.exports = {
   facebook: {
     clientID: process.env.FACEBOOK_ID || 'APP_ID',
     clientSecret: process.env.FACEBOOK_SECRET || 'APP_SECRET',
-    callbackURL: '/api/auth/facebook/callback'
+    callbackURL: 'http://localhost:9000/oauth2callback',
+    requestURL: 'https://www.facebook.com/v2.0/dialog/oauth',
+    authorizeURL: 'https://www.facebook.com/v2.0/dialog/oauth',
+    scope: 'email' // 'email user_likes user_about_me user_posts read_insights'
+  },
+  instagram: {
+    clientID: process.env.INSTAGRAM_ID || 'APP_ID',
+    clientSecret: process.env.INSTAGRAM_SECRET || 'APP_SECRET',
+    callbackURL: 'http://localhost:9000/oauth/2/callback',
+    requestURL: 'https://api.instagram.com/oauth/authorize/',
+    authorizeURL: 'https://api.instagram.com/oauth/access_token',
+    scope: 'basic' // 'comments relationships likes'
+  },
+  pinterest: {
+    clientID: process.env.PINTEREST_ID || 'APP_ID',
+    clientSecret: process.env.PINTEREST_SECRET || 'APP_SECRET',
+    callbackURL: 'https://localhost:9000/oauth/2/callback',
+    requestURL: 'https://api.pinterest.com/oauth/',
+    authorizeURL: 'https://api.pinterest.com/v1/oauth/token',
+    scope: 'read_public write_public read_relationships write_relationships'
   },
   twitter: {
     clientID: process.env.TWITTER_CONSUMER_KEY || 'CONSUMER_KEY',
@@ -64,7 +83,15 @@ module.exports = {
   google: {
     clientID: process.env.GOOGLE_ID || 'APP_ID',
     clientSecret: process.env.GOOGLE_SECRET || 'APP_SECRET',
-    callbackURL: '/api/auth/google/callback'
+    callbackURL: 'http://localhost:9000/oauth2callback',
+    requestURL: 'https://accounts.google.com/o/oauth2/auth',
+    revokeURL: 'https://accounts.google.com/o/oauth2/revoke',
+    scope: {
+      yt: 'https://www.googleapis.com/auth/yt-analytics.readonly https://www.googleapis.com/auth/youtube.readonly',
+      ga: 'https://www.googleapis.com/auth/analytics.readonly'
+    }
+  },
+  ga: {
   },
   linkedin: {
     clientID: process.env.LINKEDIN_ID || 'APP_ID',

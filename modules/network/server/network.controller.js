@@ -10,6 +10,7 @@ var Promise = require('bluebird');
 var _ = require('lodash');
 var Network = dynamoose.model('Network');
 var OAuth = require('oauth');
+var oauth = require('modules/oauth/server/oauth.service');
 
 Promise.promisifyAll(OAuth);
 
@@ -41,7 +42,7 @@ exports.create = function (req, res) {
   req.network.verifier = req.body.verifier;
   Network.update(
       {userId: req.network.userId, provider: req.network.provider},
-      {$PUT: {verifier: req.body.verifieri, status: 1}})
+      {$PUT: {verifier: req.body.verifier, status: 1}})
     .then(function(){
       res.json(req.network);
     })
@@ -83,36 +84,27 @@ exports.delete = function (req, res) {
  * Get connection url
  */
 exports.connect = function (req, res) {
-  console.log('connect', req.config);
-  console.log('connect[source]', config.twitter);
-  var oa = new OAuth.OAuth(
-      req.config.requestURL, //  'https://api.twitter.com/oauth/request_token',
-      null,
-      req.config.clientID, // 'consumerkey',
-      req.config.clientSecret, //'consumersecret',
-      '1.0',
-      req.config.callbackURL, // 'http://localhost:9000/oauth/callback',
-      'HMAC-SHA1');
-  oa.setClientOptionsAsync({});
+  console.log('[network] connect', req.config);
+  var url = '';
 
-  oa.getOAuthRequestTokenAsync()
-    .then(function(token){
-      console.log('save token: ', token);
+  oauth.generateAuthURL(req.provider)
+    .then(function(item){
+      console.log('[network] auth url', item);
+      url = item.url;
+      console.log('save token: ', item.token);
       var network = new Network();
       network.provider = req.provider;
       network.userId = req.userId;
-      network.token = token[0];
-      network.tokenSecret = token[1];
+      network.token = item.token;
+      network.tokenSecret = item.secret;
       network.status = 0;
       return network.save();
     })
     .then(function(item){
-      console.log('sign url');
-      var url = oa.signUrl( req.config.authorizeURL, item.token, item.tokenSecret);
       res.json({error: '', url: url});
     })
     .catch(function(err){
-      console.log(err);
+      console.log('[network] err:', err);
       res.json({error: err});
     });
 };
@@ -181,24 +173,5 @@ exports.networkByProvider = function (req, res, next, provider) {
     });
   }
   req.provider = provider;
-  switch(provider){
-    case 'ga':
-      req.oauth1 = false;
-      req.oauth2 = true;
-      break;
-    case 'yt':
-      req.oauth1 = false;
-      req.oauth2 = true;
-      break;
-    case 'tw':
-      req.oauth1 = true;
-      req.oauth2 = false;
-      req.config = config.twitter;
-      break;
-    default:
-      return res.status(400).send({
-        message: 'Provider is invalid'
-      });
-  }
   next();
 };

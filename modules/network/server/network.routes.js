@@ -16,7 +16,7 @@ module.exports = function (app) {
 
   app.route('/api/user/:userId/network/:provider')
     .get(controller.read)
-		.delete(controller.delete);
+    .delete(controller.delete);
 
   app.route('/api/network/callback/:token')
     .post(controller.create);
