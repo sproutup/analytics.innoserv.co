@@ -8,6 +8,11 @@ var T = require('config/lib/twitter'),
     CronJob = require('cron').CronJob,
     EventFact = require('modules/eventFact/server/eventFact.model');
 
+var request = require('request-promise');
+var OAuth = require('oauth');
+var config = require('config/config');
+Promise.promisifyAll(OAuth);
+
 // statuses/show/631208737580019712
 // statuses/retweets/631208737580019712
 // https://api.twitter.com/1.1/users/show.json
@@ -132,6 +137,31 @@ TwitterService.processStatus = function(item, type) {
 };
 
 TwitterService.cacheUser = function(user){
+};
+
+TwitterService.verifyCredentials = function(token,secret){
+  console.log('verify credientials:', token);
+  console.log('config:', config.twitter);
+  var oauth = new OAuth.OAuth(
+      'https://api.twitter.com/oauth/request_token',
+      'https://api.twitter.com/oauth/access_token',
+      config.twitter.clientID,
+      config.twitter.clientSecret,
+      '1.0A',
+      null,
+      'HMAC-SHA1'
+    );
+  return oauth.getAsync(
+    'https://api.twitter.com/1.1/account/verify_credentials.json',
+    token, //test user token
+    secret).then(function (data, res){
+      console.log(data[0]);
+      return JSON.parse(data[0]);
+    })
+    .catch(function(err){
+      console.log(err);
+      return err;
+    });
 };
 
 // https://api.twitter.com/1.1/users/show.json

@@ -13,6 +13,7 @@ var Network = dynamoose.model('Network');
 var oauth = require('modules/oauth/server/oauth.service');
 var instagram = require('modules/instagram/server/instagram.service');
 var facebook = require('modules/facebook/server/facebook.service');
+var twitter = require('modules/core/server/twitter.service');
 
 //Promise.promisifyAll(OAuth);
 
@@ -207,6 +208,12 @@ exports.readStats = function (req, res) {
       else{
         var network = result[0];
         switch(req.provider){
+          case 'tw':
+            twitter.verifyCredentials(network.accessToken, network.accessSecret).then(function(response){
+              console.log('show user: ', response);
+              return res.json(response);
+            });
+            break;
           case 'fb':
             facebook.showUser('me', network.accessToken).then(function(response){
               console.log('show user: ', response);
@@ -219,6 +226,8 @@ exports.readStats = function (req, res) {
               return res.json(response);
             });
             break;
+          default:
+            res.json('todo');
         }
       }
     });
