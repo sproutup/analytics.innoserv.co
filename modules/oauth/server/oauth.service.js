@@ -70,6 +70,63 @@ OAuthService.generateAuthURL = function (provider) {
   }
 };
 
+/**
+ * Step 2 : Get access token
+ */
+OAuthService.getAccessToken = function (token, provider, tokenSecret, verifier) {
+  console.log('[oauth] get access token for: ', provider);
+  if (_.isUndefined(provider)) {
+    return Promise.reject('Invalid provider');
+  }
+  var params = {
+    config: {},
+    scope: '',
+    provider: provider
+  };
+  var result = {
+    identifier: '',
+    handle: '',
+    refreshToken: null,
+    accessToken: null,
+    accessSecret: null
+  };
+
+  switch(provider){
+    case 'ga':
+      return OAuth2.getAccessToken(token, config.google);
+    case 'yt':
+      return OAuth2.getAccessToken(token, config.google);
+    case 'fb':
+      return OAuth2.getAccessToken(token, config.facebook);
+    case 'ig':
+      config.instagram.verifier = verifier;
+      config.instagram.tokenSecret = tokenSecret;
+      return OAuth2.getAccessToken(token, config.instagram)
+         .then(function(response){
+          result.accessToken = response[0];
+          result.identifier = response[2].user.id;
+          result.handle = response[2].user.username;
+          return result;
+        });
+    case 'pi':
+      return OAuth2.getAccessToken(token, config.pinterest);
+    case 'tw':
+      config.twitter.verifier = verifier;
+      config.twitter.tokenSecret = tokenSecret;
+      return OAuth1.getAccessToken(token, config.twitter)
+        .then(function(response){
+          result.accessToken = response[0];
+          result.accessSecret = response[1];
+          result.identifier = response[2].user_id;
+          result.handle = response[2].screen_name;
+          return result;
+        });
+    default:
+      return Promise.reject('Invalid provider');
+  }
+};
+
+
 /*
  * getRequestToken
  */
@@ -77,7 +134,7 @@ OAuth1.getAuthRequestURL = function(params){
   var res = {
     url: '',
     token: '',
-    secret: ''
+    tokenSecret: ''
   };
 
   var oa = new OAuth.OAuth(
@@ -94,7 +151,7 @@ OAuth1.getAuthRequestURL = function(params){
   return oa.getOAuthRequestTokenAsync()
     .then(function(item){
       res.token = item[0];
-      res.secret = item[1];
+      res.tokenSecret = item[1];
       console.log('[oath1] sign url: ', res);
       return oa.signUrl( params.config.authorizeURL, res.token, res.secret);
     })
@@ -123,12 +180,80 @@ OAuth2.getAuthRequestURL = function(params){
     'access_type': 'offline',
     'state': crypto.randomBytes(16).toString('hex')
   };
-
-  res.url = params.config.requestURL + '?' + querystring.stringify(str);
+  res.url = params.config.baseURL + (params.config.requestURL || '/oauth/authorize') + '?' + querystring.stringify(str);
   res.token = str.state;
   res.secret = 'na';
 
   return Promise.resolve(res);
+};
+
+/*
+ * Get access token
+ */
+OAuth1.getAccessToken = function(token, params){
+  var OAuth1 = OAuth.OAuth;
+  var oauth_token = token;
+  var oauth_token_secret = params.tokenSecret;
+  var oauth_verifier = params.verifier;
+
+
+  var oauth1 = new OAuth1(
+      params.requestURL, //  'https://api.twitter.com/oauth/request_token',
+      params.accessTokenURL,
+      params.clientID, // 'consumerkey',
+      params.clientSecret, //'consumersecret',
+      '1.0A',
+      null, //params.callbackURL, // 'http://localhost:9000/oauth/callback',
+      'HMAC-SHA1');
+
+  oauth1.setClientOptions({});
+
+  console.log('[oauth1] token:', token);
+  console.log('[oauth1] params:', params);
+
+  return oauth1.getOAuthAccessTokenAsync(token, params.tokenSecret, params.verifier)
+    .then(function(res){
+      console.log('[oauth1] access token: ', res);
+      return res;
+    })
+    .catch(function(err){
+      console.log('[oauth1] err:', err);
+      return err;
+    });
+};
+
+/*
+ * Get access token
+ */
+OAuth2.getAccessToken = function(token, config){
+  var OAuth2 = OAuth.OAuth2;
+
+  var oauth2 = new OAuth2(
+      config.clientID,
+      config.clientSecret,
+      config.baseURL,
+      null,
+      config.accessTokenURL,
+      null);
+
+  var params = {
+    //grant_type: 'refresh_token'
+    grant_type: config.grant || 'client_credentials',
+    redirect_uri: config.callbackURL
+  };
+
+  console.log('url:', oauth2._getAccessTokenUrl());
+  console.log('params:', params);
+  console.log('config:', config);
+
+  return oauth2.getOAuthAccessTokenAsync(config.verifier, params)
+    .then(function(res){
+      console.log('access: ', res);
+      return res;
+    })
+  .catch(function(err){
+    console.log(err);
+  });
 };
 
 module.exports = OAuthService;

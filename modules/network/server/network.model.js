@@ -24,11 +24,17 @@ var NetworkSchema  = new Schema({
     type: String,
     required: true,
     index: {
-      global: true
+      global: true,
+      project: true
     }
   },
   'tokenSecret': String,
   'verifier': String,
+  'accessToken': String,
+  'accessSecret': String,
+  'refreshToken:': String,
+  'identifier': String,
+  'handle': String,
   'status': {
     type: Number,
     default: 0

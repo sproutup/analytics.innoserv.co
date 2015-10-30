@@ -9,15 +9,17 @@ var dynamoose = require('config/lib/dynamoose');
 var Promise = require('bluebird');
 var _ = require('lodash');
 var Network = dynamoose.model('Network');
-var OAuth = require('oauth');
+//var OAuth = require('oauth');
 var oauth = require('modules/oauth/server/oauth.service');
+var instagram = require('modules/instagram/server/instagram.service');
+var facebook = require('modules/facebook/server/facebook.service');
 
-Promise.promisifyAll(OAuth);
+//Promise.promisifyAll(OAuth);
 
 /**
- * List of Articles
+ * List all network
  */
-exports.list = function (req, res) {
+exports.listAll = function (req, res) {
   console.log('user reach controller');
 
   Network.scan().exec().then(function(items) {
@@ -27,6 +29,14 @@ exports.list = function (req, res) {
   .catch(function(err){
     res.json(err);
   });
+};
+
+/**
+ * List users network
+ */
+exports.list = function (req, res) {
+  console.log('[network] list ctrl');
+  res.json(req.network);
 };
 
 /**
@@ -44,6 +54,26 @@ exports.create = function (req, res) {
       {userId: req.network.userId, provider: req.network.provider},
       {$PUT: {verifier: req.body.verifier, status: 1}})
     .then(function(){
+      console.log('[network] get access token: ', req.network.token);
+      return oauth.getAccessToken(
+          req.network.token,
+          req.network.provider,
+          req.network.tokenSecret,
+          req.body.verifier);
+    })
+    .then(function(access){
+      console.log('[network] save access token: ', access);
+      return Network.update(
+        {userId: req.network.userId, provider: req.network.provider},
+        {$PUT: { accessToken: access.accessToken,
+                 accessSecret: access.accessSecret,
+                 refreshToken: access.refreshToken,
+                 identifier: access.identifier,
+                 handle: access.handle,
+                 status: 1}});
+    })
+    .then(function(){
+      console.log('[network] done');
       res.json(req.network);
     })
     .catch(function(err){
@@ -57,8 +87,63 @@ exports.create = function (req, res) {
  * Show the users network
  */
 exports.read = function (req, res) {
-  console.log('read');
-  res.json(req.network);
+  Network.query('userId').eq(req.params.userId)
+    .where('provider').eq(req.params.provider)
+    .exec()
+    .then(function(result){
+      console.log('get network: ', result.length);
+      if(result.length === 0){
+        req.network = {};
+      }
+      else{
+        req.network = result[0];
+      }
+      res.json(req.network);
+    });
+};
+
+/*
+ * update access token
+ */
+exports.update = function (req, res) {
+  Network.query('userId').eq(req.params.userId)
+    .where('provider').eq(req.params.provider)
+    .exec()
+    .then(function(result){
+      console.log('[network] update get network: ', result);
+      if(result.length === 0){
+        req.network = {};
+      }
+      else{
+        console.log(result[0].verifier);
+        console.log(result[0].provider);
+        oauth.getAccessToken(result[0].token, result[0].provider,
+            result[0].tokenSecret, result[0].verifier)
+          .then(function(access){
+            console.log('[network] access token: ', access);
+            return Network.update(
+              {userId: result[0].userId, provider: result[0].provider},
+              {$PUT: {
+                       accessToken: access.accessToken,
+                       accessSecret: access.accessSecret,
+                       refreshToken: access.refreshToken,
+                       identifier: access.identifier,
+                       handle: access.handle,
+                       status: 1}});
+          })
+          .then(function(data){
+            console.log(data);
+            res.json('[network] update success');
+          })
+          .catch(function(err){
+            Network.update(
+              {userId: result[0].userId, provider: result[0].provider},
+              {$PUT: {status: -1}}).then(function(result){
+                res.json('[network] update error');
+            });
+          });
+      }
+    });
 };
 
 
@@ -70,13 +155,13 @@ exports.delete = function (req, res) {
 
   Network.delete({userId: req.userId, provider: req.provider}).then(function(data){
     res.json(data);
-	})
-	.catch(function(err){
+  })
+  .catch(function(err){
     console.log('err:',err);
     return res.status(400).send({
       message: err
     });
-	});
+  });
 };
 
 
@@ -91,12 +176,11 @@ exports.connect = function (req, res) {
     .then(function(item){
       console.log('[network] auth url', item);
       url = item.url;
-      console.log('save token: ', item.token);
       var network = new Network();
       network.provider = req.provider;
       network.userId = req.userId;
       network.token = item.token;
-      network.tokenSecret = item.secret;
+      network.tokenSecret = item.tokenSecret;
       network.status = 0;
       return network.save();
     })
@@ -106,6 +190,37 @@ exports.connect = function (req, res) {
     .catch(function(err){
       console.log('[network] err:', err);
       res.json({error: err});
+    });
+};
+
+/*
+ * Show stats
+ */
+exports.readStats = function (req, res) {
+ Network.query('userId').eq(req.params.userId)
+    .where('provider').eq(req.params.provider).exec()
+    .then(function(result){
+      console.log('get network: ', result.length);
+      if(result.length === 0){
+        req.network = {};
+      }
+      else{
+        var network = result[0];
+        switch(req.provider){
+          case 'fb':
+            facebook.showUser('me', network.accessToken).then(function(response){
+              console.log('show user: ', response);
+              return res.json(response);
+            });
+            break;
+          case 'ig':
+            instagram.showUser('self', network.accessToken).then(function(response){
+              console.log('show user: ', response);
+              return res.json(response);
+            });
+            break;
+        }
+      }
     });
 };
 
@@ -147,7 +262,7 @@ exports.networkByToken= function (req, res, next, token) {
     });
   }
   Network.query('token').eq(token).exec().then(function(result){
-    console.log('get network: ', result.length);
+    console.log('get network: ', result);
     if(result.length === 0){
       return res.status(400).send({
         message: 'Token not found'

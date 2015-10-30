@@ -15,13 +15,12 @@ var UserReachSchema  = new Schema({
     validate: function(v) { return v > 0; },
     hashKey: true
   },
-  total: Number,
-  youtube: Number,
-  facebook: Number,
-  blog: Number,
-  twitter: Number,
-  instagram: Number,
-  pinterest: Number
+  provider: {
+    type: String,
+    rangeKey: true,
+    index: true
+  },
+  value: Number
 },
 {
   throughput: {read: 15, write: 5}

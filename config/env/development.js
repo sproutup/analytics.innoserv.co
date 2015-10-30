@@ -50,18 +50,23 @@ module.exports = {
   facebook: {
     clientID: process.env.FACEBOOK_ID || 'APP_ID',
     clientSecret: process.env.FACEBOOK_SECRET || 'APP_SECRET',
+    baseURL: 'https://',
     callbackURL: 'http://localhost:9000/oauth2callback',
-    requestURL: 'https://www.facebook.com/v2.0/dialog/oauth',
-    authorizeURL: 'https://www.facebook.com/v2.0/dialog/oauth',
-    scope: 'email' // 'email user_likes user_about_me user_posts read_insights'
+    requestURL: 'www.facebook.com/v2.0/dialog/oauth',
+    authorizeURL: 'www.facebook.com/v2.0/dialog/oauth',
+    accessTokenURL: 'graph.facebook.com/v2.0/oauth/access_token',
+    scope: 'user_friends email public_profile user_likes' // 'email user_likes user_about_me user_posts read_insights'
   },
   instagram: {
     clientID: process.env.INSTAGRAM_ID || 'APP_ID',
     clientSecret: process.env.INSTAGRAM_SECRET || 'APP_SECRET',
+    baseURL: 'https://api.instagram.com',
     callbackURL: 'http://localhost:9000/oauth/2/callback',
-    requestURL: 'https://api.instagram.com/oauth/authorize/',
-    authorizeURL: 'https://api.instagram.com/oauth/access_token',
-    scope: 'basic' // 'comments relationships likes'
+//    requestURL: 'https://api.instagram.com/oauth/authorize',
+//    authorizeURL: 'oauth/access_token',
+//    accessTokenURL: '/oauth/access_token',
+    scope: 'basic', // 'comments relationships likes',
+    grant: 'authorization_code'
   },
   pinterest: {
     clientID: process.env.PINTEREST_ID || 'APP_ID',
@@ -78,14 +83,17 @@ module.exports = {
     accessSecret: process.env.TWITTER_ACCESS_SECRET || 'ACCESS_SECRET',
     callbackURL: 'http://localhost:9000/oauth/1/callback',
     requestURL: 'https://api.twitter.com/oauth/request_token',
-    authorizeURL: 'https://api.twitter.com/oauth/authorize'
+    authorizeURL: 'https://api.twitter.com/oauth/authorize',
+    accessTokenURL: 'https://api.twitter.com/oauth/access_token'
   },
   google: {
     clientID: process.env.GOOGLE_ID || 'APP_ID',
     clientSecret: process.env.GOOGLE_SECRET || 'APP_SECRET',
+    baseURL: 'https://accounts.google.com',
     callbackURL: 'http://localhost:9000/oauth2callback',
-    requestURL: 'https://accounts.google.com/o/oauth2/auth',
-    revokeURL: 'https://accounts.google.com/o/oauth2/revoke',
+    requestURL: '/o/oauth2/auth',
+    accessURL: '/o/oauth2/access_token',
+    revokeURL: '/o/oauth2/revoke',
     scope: {
       yt: 'https://www.googleapis.com/auth/yt-analytics.readonly https://www.googleapis.com/auth/youtube.readonly',
       ga: 'https://www.googleapis.com/auth/analytics.readonly'
