@@ -93,9 +93,21 @@ OAuthService.getAccessToken = function (token, provider, tokenSecret, verifier) 
 
   switch(provider){
     case 'ga':
-      return OAuth2.getAccessToken(token, config.google);
+      config.google.verifier = verifier;
+      config.google.tokenSecret = tokenSecret;
+      return OAuth2.getAccessToken(token, config.google)
+         .then(function(response){
+          result.accessToken = response[0];
+          return result;
+        });
     case 'yt':
-      return OAuth2.getAccessToken(token, config.google);
+      config.google.verifier = verifier;
+      config.google.tokenSecret = tokenSecret;
+      return OAuth2.getAccessToken(token, config.google)
+         .then(function(response){
+          result.accessToken = response[0];
+          return result;
+        });
     case 'fb':
       config.facebook.verifier = verifier;
       config.facebook.tokenSecret = tokenSecret;

@@ -93,15 +93,16 @@ module.exports = {
   google: {
     clientID: process.env.GOOGLE_ID || 'APP_ID',
     clientSecret: process.env.GOOGLE_SECRET || 'APP_SECRET',
-    baseURL: 'https://accounts.google.com',
+    baseURL: 'https://',
     callbackURL: 'http://localhost:9000/oauth2callback',
-    requestURL: '/o/oauth2/auth',
-    accessURL: '/o/oauth2/access_token',
+    requestURL: 'accounts.google.com/o/oauth2/auth',
+    accessTokenURL: 'www.googleapis.com/oauth2/v3/token',
     revokeURL: '/o/oauth2/revoke',
     scope: {
       yt: 'https://www.googleapis.com/auth/yt-analytics.readonly https://www.googleapis.com/auth/youtube.readonly',
       ga: 'https://www.googleapis.com/auth/analytics.readonly'
-    }
+    },
+    grant: 'authorization_code'
   },
   ga: {
   },
