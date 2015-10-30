@@ -97,7 +97,13 @@ OAuthService.getAccessToken = function (token, provider, tokenSecret, verifier) 
     case 'yt':
       return OAuth2.getAccessToken(token, config.google);
     case 'fb':
-      return OAuth2.getAccessToken(token, config.facebook);
+      config.facebook.verifier = verifier;
+      config.facebook.tokenSecret = tokenSecret;
+      return OAuth2.getAccessToken(token, config.facebook)
+         .then(function(response){
+          result.accessToken = response[0];
+          return result;
+        });
     case 'ig':
       config.instagram.verifier = verifier;
       config.instagram.tokenSecret = tokenSecret;
@@ -109,7 +115,15 @@ OAuthService.getAccessToken = function (token, provider, tokenSecret, verifier) 
           return result;
         });
     case 'pi':
-      return OAuth2.getAccessToken(token, config.pinterest);
+      config.pinterest.verifier = verifier;
+      config.pinterest.tokenSecret = tokenSecret;
+      return OAuth2.getAccessToken(token, config.pinterest)
+         .then(function(response){
+          result.accessToken = response[0];
+//          result.identifier = response[2].user.id;
+//          result.handle = response[2].user.username;
+          return result;
+        });
     case 'tw':
       config.twitter.verifier = verifier;
       config.twitter.tokenSecret = tokenSecret;

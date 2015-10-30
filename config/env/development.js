@@ -71,10 +71,14 @@ module.exports = {
   pinterest: {
     clientID: process.env.PINTEREST_ID || 'APP_ID',
     clientSecret: process.env.PINTEREST_SECRET || 'APP_SECRET',
+    baseURL: 'https://api.pinterest.com',
+    requestURL: '/oauth',
+    accessTokenURL: '/v1/oauth/token',
     callbackURL: 'https://localhost:9000/oauth/2/callback',
-    requestURL: 'https://api.pinterest.com/oauth/',
+//    requestURL: 'https://api.pinterest.com/oauth/',
     authorizeURL: 'https://api.pinterest.com/v1/oauth/token',
-    scope: 'read_public write_public read_relationships write_relationships'
+    scope: 'read_public write_public read_relationships write_relationships',
+    grant: 'authorization_code'
   },
   twitter: {
     clientID: process.env.TWITTER_CONSUMER_KEY || 'CONSUMER_KEY',
