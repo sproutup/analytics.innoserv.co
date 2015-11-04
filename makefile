@@ -1,49 +1,42 @@
-environment_name = develop
+target = develop
 platform = docker
 application_name = analytics
 region = us-west-2
 keypair = endurance
 configuration = analytics
 domain = sproutup-co
+repo = sproutupco
 
 
 all: node
 
 master:
-	$(eval environment_name := master)
+	$(eval target := master)
 
-deploy: init
-	eb deploy $(application_name)-$(environment_name)
-
-init:
-	eb init -r $(region) -p $(platform) -k $(keypair) $(environment_name)
-
-recreate: terminate create
-
-create: init config-put
-	eb create $(application_name)-$(environment_name) -c $(application_name)-$(environment_name)-$(domain) --cfg $(configuration)-$(environment_name)
-
-terminate: init
-	eb terminate $(application_name)-$(environment_name) --force
+develop:
+	$(eval target := develop)
 
 build:
-	docker build -t $(application_name) .
+	docker build -t $(repo)/$(application_name):$(target) .
+
+push: build
+	docker push $(repo)/$(application_name):$(target)
 
 rebuild: stop delete build run
 
 stop:
-	docker stop $(application_name)
+	docker stop $(repo)/$(application_name):$(target)
 
 restart: stop start
 
 start:
-	docker start $(application_name)
+	docker start $(repo)/$(application_name):$(target)
 
 run:
 	docker run -d -p 3000:3000 --name $(application_name) --net="host" --env-file local-env.list $(application_name)
 
 runia:
-	docker run -i -p 3000:3000 --env-file local-env.list --net="host" -t analytics /bin/bash
+	docker run -it -p 3000:3020 --env-file local-env.list --net="host" -t $(repo)/$(application_name) /bin/sh
 
 delete: init
 	docker rm $(application_name)
@@ -51,11 +44,6 @@ delete: init
 node:
 	gulp
 
-config-save:
-	eb config save $(configuration) --cfg $(configuration)
+deploy: push
+	$(MAKE) -C target $(target) deploy
 
-config: init config-put
-	eb config $(application_name)-$(environment_name) --cfg $(application_name)-$(environment_name)
-
-config-put: init
-	eb config put $(application_name)-$(environment_name)
