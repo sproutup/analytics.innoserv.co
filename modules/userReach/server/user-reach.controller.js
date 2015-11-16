@@ -9,45 +9,30 @@ var _ = require('lodash');
 var UserReach = dynamoose.model('UserReach');
 
 /**
- * List of Articles
+ * Create
+ */
+exports.create = function(req, res){
+  var reach = new UserReach(req.body);
+  //reach.provider = req.provider;
+  reach.userId = req.userId;
+  console.log(reach);
+  reach.save().then(function(result){
+    res.json(result);
+  })
+  .catch(function(err){
+    return res.status(400).send({
+      message: err.message
+    });
+  });
+};
+
+/**
+ * List
  */
 exports.list = function (req, res) {
   console.log('user reach controller');
 
-  UserReach.scan().exec().then(function(res){
-    console.log('scan: ', res);
-  });
-
-  UserReach.scan().exec().then(function(items) {
-    console.log('user reach result', items);
-    res.json(items);
-  })
-  .catch(function(err){
-    res.json(err);
-  });
-};
-
-/*
- * Show the current reach
- */
-exports.read = function (req, res) {
-  console.log('read');
-  var total = _.sum(req.userReach) - req.userReach.userId;
-  req.userReach.total = total;
-  res.json(req.userReach);
-};
-
-/**
- * Middleware
- */
-exports.userReachByID = function (req, res, next, id) {
-  console.log('middleware');
-  if (_.isUndefined(id)) {
-    return res.status(400).send({
-      message: 'User ID is invalid'
-    });
-  }
-  UserReach.query('userId').eq(id).exec().then(function(userReach){
+  UserReach.query('userId').eq(req.userId).exec().then(function(userReach){
     console.log('get reach: ', userReach.length);
     if(userReach.length === 0){
       req.userReach = {'total': 0};
@@ -55,9 +40,62 @@ exports.userReachByID = function (req, res, next, id) {
     else{
       req.userReach = userReach[0];
     }
-    next();
+    res.json(req.userReach);
   })
   .catch(function(err){
-    return next(err);
+    res.json(err);
   });
+};
+
+/*
+ * Read
+ */
+exports.read = function (req, res) {
+  UserReach.get({userId: req.userId, provider: req.provider})
+    .then(function(userReach){
+    console.log('get reach: ', _.pick(userReach, ['provider', 'value']));
+    res.json(_.pick(userReach, ['provider', 'value']));
+  })
+  .catch(function(err){
+    return res.json(err);
+  });
+};
+
+/**
+ * Update
+ */
+exports.update = function (req, res) {
+  UserReach.get({userId: req.userId, provider: req.provider})
+    .then(function(userReach){
+    console.log('get reach: ', _.pick(userReach, ['provider', 'value']));
+    res.json(_.pick(userReach, ['provider', 'value']));
+  })
+  .catch(function(err){
+    return res.json(err);
+  });
+};
+
+/**
+ * Middleware
+ */
+exports.userReachByID = function (req, res, next, id) {
+  if (_.isUndefined(id)) {
+    return res.status(400).send({
+      message: 'User ID is invalid'
+    });
+  }
+  console.log('user id: ', id);
+  req.userId = id;
+  next();
+};
+
+exports.reachByProvider = function (req, res, next, provider) {
+  if (_.isUndefined(provider)) {
+    return res.status(400).send({
+      message: 'Provider is invalid'
+    });
+  }
+  console.log('provider: ', provider);
+  req.provider = provider;
+  next();
 };
