@@ -198,7 +198,13 @@ exports.connect = function (req, res) {
  * Show stats
  */
 exports.readStats = function (req, res) {
- Network.query('userId').eq(req.params.userId)
+  Network.get({userId: req.params.userId, provider: req.provider}).then(function(data){
+    data.getReach(req.params.provider).then(function(data){
+      res.json(data);
+    });
+  });
+
+/* Network.query('userId').eq(req.params.userId)
     .where('provider').eq(req.params.provider).exec()
     .then(function(result){
       console.log('get network: ', result.length);
@@ -231,6 +237,7 @@ exports.readStats = function (req, res) {
         }
       }
     });
+    */
 };
 
 

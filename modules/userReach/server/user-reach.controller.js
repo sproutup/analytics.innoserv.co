@@ -7,6 +7,7 @@ var path = require('path');
 var dynamoose = require('config/lib/dynamoose');
 var _ = require('lodash');
 var UserReach = dynamoose.model('UserReach');
+var Network = dynamoose.model('Network');
 
 /**
  * Create
@@ -30,17 +31,12 @@ exports.create = function(req, res){
  * List
  */
 exports.list = function (req, res) {
-  console.log('user reach controller');
-
   UserReach.query('userId').eq(req.userId).exec().then(function(userReach){
-    console.log('get reach: ', userReach.length);
-    if(userReach.length === 0){
-      req.userReach = {'total': 0};
-    }
-    else{
-      req.userReach = userReach[0];
-    }
-    res.json(req.userReach);
+    var result = {};
+    _.forEach(userReach, function(val){
+      result[val.provider] = val.value;
+    });
+    res.json(result);
   })
   .catch(function(err){
     res.json(err);
@@ -53,8 +49,9 @@ exports.list = function (req, res) {
 exports.read = function (req, res) {
   UserReach.get({userId: req.userId, provider: req.provider})
     .then(function(userReach){
-    console.log('get reach: ', _.pick(userReach, ['provider', 'value']));
-    res.json(_.pick(userReach, ['provider', 'value']));
+      var result = {};
+      result[userReach.provider] = userReach.value;
+      res.json(result);
   })
   .catch(function(err){
     return res.json(err);
@@ -65,14 +62,23 @@ exports.read = function (req, res) {
  * Update
  */
 exports.update = function (req, res) {
-  UserReach.get({userId: req.userId, provider: req.provider})
-    .then(function(userReach){
-    console.log('get reach: ', _.pick(userReach, ['provider', 'value']));
-    res.json(_.pick(userReach, ['provider', 'value']));
-  })
-  .catch(function(err){
-    return res.json(err);
-  });
+  Network.get({userId: req.userId, provider: req.provider})
+    .then(function(data) {
+      return data.getReach();
+    })
+    .then(function(data) {
+      var userreach = new UserReach({userId: req.userId, provider: req.provider, value: data});
+      console.log(userreach);
+      return userreach.save();
+    })
+    .then(function(userReach) {
+      console.log('get reach: ', _.pick(userReach, ['provider', 'value']));
+      res.json(_.pick(userReach, ['provider', 'value']));
+    })
+    .catch(function(err){
+      console.log('err:', err);
+      return res.json(err);
+    });
 };
 
 /**

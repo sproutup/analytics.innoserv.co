@@ -155,7 +155,7 @@ TwitterService.verifyCredentials = function(token,secret){
     'https://api.twitter.com/1.1/account/verify_credentials.json',
     token, //test user token
     secret).then(function (data, res){
-      console.log(data[0]);
+      //console.log(data[0]);
       return JSON.parse(data[0]);
     })
     .catch(function(err){
