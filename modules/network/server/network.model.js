@@ -7,6 +7,8 @@ var dynamoose = require('config/lib/dynamoose');
 var Schema = dynamoose.Schema;
 var Promise = require('bluebird');
 var instagram = require('modules/instagram/server/instagram.service');
+var youtube = require('modules/youtube/server/youtube.service');
+var pinterest = require('modules/pinterest/server/pinterest.service');
 var facebook = require('modules/facebook/server/facebook.service');
 var twitter = require('modules/core/server/twitter.service');
 
@@ -67,10 +69,20 @@ NetworkSchema.methods.getReach = Promise.method(function(){
           console.log('show user: ', data);
           return data;
         });
+      case 'yt':
+        return youtube.showUser('self', this.accessToken).then(function(data){
+          console.log('show user: ', data);
+          return data.statistics.subscriberCount;
+        });
       case 'ig':
         return instagram.showUser('self', this.accessToken).then(function(data){
           console.log('show user: ', data);
           return data.counts.followed_by;
+        });
+      case 'pi':
+        return pinterest.showUser('me', this.accessToken).then(function(data){
+          console.log('show user: ', data);
+          return data.counts.followers;
         });
       default:
         return 0;

@@ -13,7 +13,7 @@ var request = require('request-promise');
 // GET /users/self/media/liked        See the authenticated user's list of liked media.
 // GET /users/search                  Search for a user by name.
 
-var InstagramService = function(){
+var YoutubeService = function(){
   this.schema = {
     user: {
       id: null,
@@ -27,8 +27,8 @@ var InstagramService = function(){
 /*
  * Init the api quotas and setup intervals
  */
-InstagramService.init = function(){
-  console.log('instagram service init');
+YoutubeService.init = function(){
+  console.log('youtube service init');
 
 //  setInterval(LinkedAccount.process, moment.duration(1, 's').asMilliseconds());
 
@@ -42,24 +42,28 @@ InstagramService.init = function(){
 //  );
 };
 
-InstagramService.showUser = function(id, token){
+YoutubeService.showUser = function(id, token){
   console.log('showUser:', id);
   var options = {
-    uri: 'https://api.instagram.com/v1/users/' + id,
-    qs: {access_token: token},
+    uri: 'https://www.googleapis.com/youtube/v3/channels',
+    qs: {
+      access_token: token,
+      part: 'id,snippet,statistics',
+      mine: true
+    },
     json: true
   };
   console.log('options:', options);
   return request(options).then(function(response){
-    var user = {
+/*    var user = {
       id: response.data.id,
       followers: response.data.counts.followed_by,
       friends: response.data.counts.follows,
       statuses: response.data.counts.media
-    };
-    console.log('updating instagram stats: ', user);
+    };*/
+    console.log('updating youtube stats: ', response.items);
 //      redis.hmset('twitter:user:'+id, user);
-    return response.data;
+    return response.items[0];
   })
   .catch(function(err){
     console.log('Error: ', err);
@@ -67,4 +71,4 @@ InstagramService.showUser = function(id, token){
   });
 };
 
-module.exports = InstagramService;
+module.exports = YoutubeService;

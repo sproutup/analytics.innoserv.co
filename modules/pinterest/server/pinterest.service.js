@@ -13,7 +13,7 @@ var request = require('request-promise');
 // GET /users/self/media/liked        See the authenticated user's list of liked media.
 // GET /users/search                  Search for a user by name.
 
-var InstagramService = function(){
+var PinterestService = function(){
   this.schema = {
     user: {
       id: null,
@@ -27,7 +27,7 @@ var InstagramService = function(){
 /*
  * Init the api quotas and setup intervals
  */
-InstagramService.init = function(){
+PinterestService.init = function(){
   console.log('instagram service init');
 
 //  setInterval(LinkedAccount.process, moment.duration(1, 's').asMilliseconds());
@@ -42,11 +42,11 @@ InstagramService.init = function(){
 //  );
 };
 
-InstagramService.showUser = function(id, token){
+PinterestService.showUser = function(id, token){
   console.log('showUser:', id);
   var options = {
-    uri: 'https://api.instagram.com/v1/users/' + id,
-    qs: {access_token: token},
+    uri: 'https://api.pinterest.com/v1/users/' + id,
+    qs: {access_token: token, fields: 'id,url,counts'},
     json: true
   };
   console.log('options:', options);
@@ -67,4 +67,4 @@ InstagramService.showUser = function(id, token){
   });
 };
 
-module.exports = InstagramService;
+module.exports = PinterestService;
