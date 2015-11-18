@@ -9,13 +9,11 @@ var dynamoose = require('config/lib/dynamoose');
 var Promise = require('bluebird');
 var _ = require('lodash');
 var Network = dynamoose.model('Network');
-//var OAuth = require('oauth');
 var oauth = require('modules/oauth/server/oauth.service');
 var instagram = require('modules/instagram/server/instagram.service');
 var facebook = require('modules/facebook/server/facebook.service');
 var twitter = require('modules/core/server/twitter.service');
 
-//Promise.promisifyAll(OAuth);
 
 /**
  * List all network
@@ -81,6 +79,46 @@ exports.create = function (req, res) {
        return res.status(400).send({
         message: err
       });
+    });
+};
+
+/**
+ * Update user info
+ */
+exports.readAccount = function (req, res) {
+  Network.get({userId: req.userId, provider: req.provider})
+    .then(function(data){
+      return data.getUser();
+    })
+    .then(function(data){
+      console.log(data);
+      res.json(data);
+    })
+    .catch(function(err){
+      res.json(err);
+    });
+};
+
+/**
+ * Update user info
+ */
+exports.updateAccount = function (req, res) {
+  Network.get({userId: req.userId, provider: req.provider})
+    .then(function(data){
+      return data.getUser();
+    })
+    .then(function(data){
+      return Network.update({userId: req.userId, provider: req.provider},
+        {$PUT: {identifier: data.webProperties[0].profiles[0].id,
+                 name: data.name,
+                 url: data.webProperties[0].websiteUrl}});
+    })
+    .then(function(data){
+      console.log(data);
+      res.json(data);
+    })
+    .catch(function(err){
+      res.json(err);
     });
 };
 

@@ -72,11 +72,19 @@ exports.update = function (req, res) {
       return userreach.save();
     })
     .then(function(userReach) {
-      console.log('get reach: ', _.pick(userReach, ['provider', 'value']));
-      res.json(_.pick(userReach, ['provider', 'value']));
+      var result = {};
+      result[userReach.provider] = userReach.value;
+      res.json(result);
     })
     .catch(function(err){
-      console.log('err:', err);
+      console.log('err:', req.provider);
+      Network.update({userId: req.userId, provider: req.provider}, {$PUT: {status: -1, message: err.message}})
+        .then(function(data){
+          console.log('err saved');
+        })
+      .catch(function(err){
+        console.log(err);
+      });
       return res.json(err);
     });
 };
@@ -101,7 +109,17 @@ exports.reachByProvider = function (req, res, next, provider) {
       message: 'Provider is invalid'
     });
   }
-  console.log('provider: ', provider);
+
   req.provider = provider;
-  next();
+
+  Network.get({userId: req.params.userId, provider: provider})
+    .then(function(data) {
+//      if(_.isUndefined(data)){
+//        return res.status(400).send({
+//          message: 'No '+ provider +' connection found'
+//        });
+//      }
+      req.network = data;
+      next();
+    });
 };

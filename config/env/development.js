@@ -99,8 +99,8 @@ module.exports = {
     accessTokenURL: 'www.googleapis.com/oauth2/v3/token',
     revokeURL: '/o/oauth2/revoke',
     scope: {
-      yt: 'https://www.googleapis.com/auth/yt-analytics.readonly https://www.googleapis.com/auth/youtube.readonly',
-      ga: 'https://www.googleapis.com/auth/analytics.readonly'
+      yt: 'profile email https://www.googleapis.com/auth/yt-analytics.readonly https://www.googleapis.com/auth/youtube.readonly',
+      ga: 'profile email https://www.googleapis.com/auth/analytics.readonly'
     },
     grant: 'authorization_code'
   },
