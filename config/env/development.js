@@ -55,7 +55,8 @@ module.exports = {
     requestURL: 'www.facebook.com/v2.0/dialog/oauth',
     authorizeURL: 'www.facebook.com/v2.0/dialog/oauth',
     accessTokenURL: 'graph.facebook.com/v2.0/oauth/access_token',
-    scope: 'user_friends email public_profile user_likes' // 'email user_likes user_about_me user_posts read_insights'
+    scope: 'user_friends email public_profile user_likes', // 'email user_likes user_about_me user_posts read_insights'
+    grant: 'authorization_code'
   },
   instagram: {
     clientID: process.env.INSTAGRAM_ID || 'APP_ID',

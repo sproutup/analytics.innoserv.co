@@ -43,7 +43,7 @@ FacebookService.init = function(){
 };
 
 FacebookService.showUser = function(id, token){
-console.log('showUser:', id);
+//console.log('showUser:', id);
   var options = {
     uri: 'https://graph.facebook.com/me?fields=id,name,email,friends,verified',
     qs: {access_token: token},
@@ -51,15 +51,8 @@ console.log('showUser:', id);
   };
 console.log('options:', options);
   return request(options).then(function(response){
-    var user = {
-      id: response.data.id,
-      followers: response.data.counts.followed_by,
-      friends: response.data.counts.follows,
-      statuses: response.data.counts.media
-    };
-    console.log('updating instagram stats: ', user);
-//      redis.hmset('twitter:user:'+id, user);
-    return response.data;
+    console.log('facebook: ', response);
+    return response.friends.summary.total_count;
   })
   .catch(function(err){
     console.log('Error: ', err);
