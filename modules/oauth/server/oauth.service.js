@@ -7,7 +7,7 @@ var OAuth = require('oauth');
 var querystring = require('querystring');
 var crypto = require('crypto');
 
-Promise.promisifyAll(OAuth);
+Promise.promisifyAll(OAuth, {multiArgs: true});
 
 var OAuthService = function(){
   var m = {};
@@ -98,6 +98,7 @@ OAuthService.getAccessToken = function (token, provider, tokenSecret, verifier) 
       return OAuth2.getAccessToken(token, config.google)
          .then(function(response){
           result.accessToken = response[0];
+          result.refreshToken = response[1];
           return result;
         });
     case 'yt':

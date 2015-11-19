@@ -45,14 +45,14 @@ FacebookService.init = function(){
 FacebookService.showUser = function(id, token){
 //console.log('showUser:', id);
   var options = {
-    uri: 'https://graph.facebook.com/me?fields=id,name,email,friends,verified',
+    uri: 'https://graph.facebook.com/me?fields=id,name,email,friends,verified,link',
     qs: {access_token: token},
     json: true
   };
 console.log('options:', options);
   return request(options).then(function(response){
     console.log('facebook: ', response);
-    return response.friends.summary.total_count;
+    return response;
   })
   .catch(function(err){
     console.log('Error: ', err);

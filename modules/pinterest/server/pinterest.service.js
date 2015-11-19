@@ -46,7 +46,7 @@ PinterestService.showUser = function(id, token){
   console.log('showUser:', id);
   var options = {
     uri: 'https://api.pinterest.com/v1/users/' + id,
-    qs: {access_token: token, fields: 'id,url,counts'},
+    qs: {access_token: token, fields: 'id,url,username,first_name,last_name,counts'},
     json: true
   };
   console.log('options:', options);
@@ -63,7 +63,7 @@ PinterestService.showUser = function(id, token){
   })
   .catch(function(err){
     console.log('Error: ', err);
-    return {err: err};
+    throw {code: err.error.error.code, message: err.error.error.message};
   });
 };
 

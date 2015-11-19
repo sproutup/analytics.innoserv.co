@@ -39,7 +39,7 @@ var NetworkSchema  = new Schema({
   'verifier': String,
   'accessToken': String,
   'accessSecret': String,
-  'refreshToken:': String,
+  'refreshToken': String,
   'identifier': String,
   'name': String,
   'url': String,
@@ -67,33 +67,49 @@ NetworkSchema.methods.getUser = Promise.method(function(){
         return twitter.verifyCredentials(this.accessToken, this.accessSecret)
           .then(function(data){
             console.log('show user: ', data);
-            return data.followers_count;
+            return {identifier: data.id,
+              name: data.name,
+              url: 'https://twitter.com/' + data.screen_name};
         });
       case 'fb':
         return facebook.showUser('me', this.accessToken).then(function(data){
           console.log('show user: ', data);
-          return data;
+          return {identifier: data.id,
+            name: data.name,
+            url: data.link};
         });
       case 'ga':
         return googleAnalytics.showUser(this.identifier, this.accessToken)
           .then(function(data){
             console.log('show user: ', data);
-            return data;
+            return {identifier: data.webProperties[0].profiles[0].id,
+                 name: data.name,
+                 url: data.webProperties[0].websiteUrl};
           });
       case 'yt':
         return youtube.showUser('self', this.accessToken).then(function(data){
           console.log('show user: ', data);
-          return data.statistics.subscriberCount;
+            return {identifier: data.id,
+              handle: data.id,
+              name: data.snippet.title,
+              url: 'https://www.youtube.com/channel/' + data.id};
         });
       case 'ig':
         return instagram.showUser('self', this.accessToken).then(function(data){
           console.log('show user: ', data);
-          return data.counts.followed_by;
+          return {identifier: data.id,
+            handle: data.username,
+            name: data.full_name,
+            url: 'https://www.instagram.com/' + data.username};
         });
       case 'pi':
-        return pinterest.showUser('me', this.accessToken).then(function(data){
+        return pinterest.showUser('me', this.accessToken)
+          .then(function(data){
           console.log('show user: ', data);
-          return data.counts.followers;
+            return {identifier: data.id,
+              handle: data.username,
+              name: data.first_name + ' ' + data.last_name,
+              url: data.url};
         });
       default:
         return 0;
@@ -120,7 +136,7 @@ NetworkSchema.methods.getReach = Promise.method(function(){
       case 'fb':
         return facebook.showUser('me', this.accessToken).then(function(data){
           console.log('show user: ', data);
-          return data;
+          return data.friends.summary.total_count;
         });
       case 'ga':
         return googleAnalytics.getReach(this.identifier, this.accessToken)

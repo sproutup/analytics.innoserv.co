@@ -65,18 +65,35 @@ exports.create = function (req, res) {
       return Network.update(
         {userId: req.network.userId, provider: req.network.provider},
         {$PUT: { accessToken: access.accessToken,
-                 accessSecret: access.accessSecret,
                  refreshToken: access.refreshToken,
+                 accessSecret: access.accessSecret,
                  identifier: access.identifier,
                  handle: access.handle,
                  status: 1}});
+    })
+    .then(function(network){
+      console.log('network:::', network);
+      return network.getUser();
+    })
+    .then(function(data){
+      console.log('user: ', data);
+      return Network.update({userId: req.network.userId, provider: req.network.provider},
+        {$PUT: {identifier: data.identifier,
+                 name: data.name,
+                 url: data.url}});
     })
     .then(function(){
       console.log('[network] done');
       res.json(req.network);
     })
     .catch(function(err){
-       return res.status(400).send({
+      console.log(err);
+      Network.update(
+        {userId: req.network.userId, provider: req.network.provider},
+          {$PUT: {status: -1, message: err.message}}).then(function(result){
+            res.json('[network] update error');
+          });
+      return res.status(400).send({
         message: err
       });
     });
@@ -138,6 +155,7 @@ exports.read = function (req, res) {
         req.network = result[0];
       }
       res.json(req.network);
+//      res.json(_.omit(req.network, ['token', 'verifier', 'accessToken']));
     });
 };
 
