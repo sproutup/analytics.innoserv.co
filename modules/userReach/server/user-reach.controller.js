@@ -33,9 +33,12 @@ exports.create = function(req, res){
 exports.list = function (req, res) {
   UserReach.query('userId').eq(req.userId).exec().then(function(userReach){
     var result = {};
+    var total = 0;
     _.forEach(userReach, function(val){
       result[val.provider] = val.value;
+      total += val.value;
     });
+    result.total = total;
     res.json(result);
   })
   .catch(function(err){
