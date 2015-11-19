@@ -9,6 +9,7 @@ var dynamoose = require('config/lib/dynamoose');
 var Promise = require('bluebird');
 var _ = require('lodash');
 var Network = dynamoose.model('Network');
+var UserReach = dynamoose.model('UserReach');
 var oauth = require('modules/oauth/server/oauth.service');
 var instagram = require('modules/instagram/server/instagram.service');
 var facebook = require('modules/facebook/server/facebook.service');
@@ -82,7 +83,15 @@ exports.create = function (req, res) {
                  name: data.name,
                  url: data.url}});
     })
-    .then(function(){
+    .then(function(data){
+       return data.getReach();
+    })
+    .then(function(data) {
+      var userreach = new UserReach({userId: req.network.userId, provider: req.network.provider, value: data});
+      console.log(userreach);
+      return userreach.save();
+    })
+    .then(function(data){
       console.log('[network] done');
       res.json(req.network);
     })
