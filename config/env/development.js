@@ -30,7 +30,7 @@ module.exports = {
     db: process.env.REDIS_DB || 0  // Redis databases
   },
   dynamodb: {
-    local: true
+    local: false
   },
   aws: {
   },
