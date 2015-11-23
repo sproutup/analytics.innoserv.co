@@ -24,6 +24,7 @@ OptionSettings:
     EnvironmentType: LoadBalanced
   aws:elasticbeanstalk:application:environment:
     PORT: 3000
+    NODE_ENV: production
     MYSQL_HOST: sproutupdev.ctdo662vilif.us-west-2.rds.amazonaws.com
     MYSQL_USER: dbadmin
     MYSQL_PASSWORD: 1nter$Tellar
