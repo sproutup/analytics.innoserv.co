@@ -21,3 +21,10 @@ module.exports = {
   }
 };
 */
+
+module.exports = {
+  dynamodb: {
+    local: true
+  },
+  port: 3020
+};
