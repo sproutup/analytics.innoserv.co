@@ -219,15 +219,19 @@ exports.update = function (req, res) {
 exports.delete = function (req, res) {
   var item = req.network;
 
-  Network.delete({userId: req.userId, provider: req.provider}).then(function(data){
-    res.json(data);
-  })
-  .catch(function(err){
-    console.log('err:',err);
-    return res.status(400).send({
-      message: err
+  Network.delete({userId: req.userId, provider: req.provider})
+    .then(function(data){
+      return UserReach.delete({userId: req.userId, provider: req.provider});
+    })
+    .then(function(data){
+      res.json('success');
+    })
+    .catch(function(err){
+      console.log('err:',err);
+      return res.status(400).send({
+        message: err
+      });
     });
-  });
 };
 
 
