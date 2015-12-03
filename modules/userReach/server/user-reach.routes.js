@@ -14,7 +14,8 @@ module.exports = function (app) {
   // Single article routes
   app.route('/api/user/:userId/reach/:provider')
     .get(controller.read)
-    .put(controller.update);
+    .put(controller.update)
+    .delete(controller.delete);
 
   // Finish by binding the middleware
   app.param('userId', controller.userReachByID);
