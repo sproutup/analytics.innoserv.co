@@ -92,6 +92,16 @@ exports.update = function (req, res) {
     });
 };
 
+exports.delete = function(req, res) {
+  UserReach.delete({userId: req.userId, provider: req.provider})
+    .then(function(data){
+      res.json('success');
+    })
+    .catch(function(err){
+      res.json('failed');
+    });
+};
+
 /**
  * Middleware
  */
