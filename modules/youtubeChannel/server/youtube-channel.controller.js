@@ -4,7 +4,7 @@
  * Module dependencies.
  */
 var path = require('path');
-var dynamoose = require('config/lib/dynamoose');
+var dynamoose = require('dynamoose');
 var YoutubeChannel = dynamoose.model('YoutubeChannel');
 
 /**

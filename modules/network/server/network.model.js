@@ -3,7 +3,7 @@
 /**
  *  * Module dependencies.
  *   */
-var dynamoose = require('config/lib/dynamoose');
+var dynamoose = require('dynamoose');
 var Schema = dynamoose.Schema;
 var Promise = require('bluebird');
 var instagram = require('modules/instagram/server/instagram.service');

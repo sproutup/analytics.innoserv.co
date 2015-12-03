@@ -5,7 +5,7 @@
  */
 var path = require('path');
 var config = require('config/config');
-var dynamoose = require('config/lib/dynamoose');
+var dynamoose = require('dynamoose');
 var Promise = require('bluebird');
 var _ = require('lodash');
 var Network = dynamoose.model('Network');

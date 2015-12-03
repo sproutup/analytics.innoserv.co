@@ -4,7 +4,7 @@
  * Module dependencies.
  */
 var path = require('path');
-var dynamoose = require('config/lib/dynamoose');
+var dynamoose = require('dynamoose');
 var _ = require('lodash');
 var UserReach = dynamoose.model('UserReach');
 var Network = dynamoose.model('Network');
