@@ -1,3 +1,5 @@
+'use strict';
+
 var express = require('express');
 var path = require('path');
 var favicon = require('serve-favicon');
@@ -13,14 +15,14 @@ var youtubeAnalytics = google.youtubeAnalytics('v1beta1');
 var app = express();
 
 var mysqlHost = process.env.MYSQLHOST || 'localhost';
-var mysqlUser = process.env.MYSQLUSER || "root";
-var mysqlPassword = process.env.MYSQLPASSWORD || "root";
-var mysqlDatabase = process.env.MYSQLDATABASE || "sproutup_db";
+var mysqlUser = process.env.MYSQLUSER || 'root';
+var mysqlPassword = process.env.MYSQLPASSWORD || 'root';
+var mysqlDatabase = process.env.MYSQLDATABASE || 'sproutup_db';
 
-console.log("config: ", mysqlHost, mysqlUser, mysqlDatabase );
+console.log('config: ', mysqlHost, mysqlUser, mysqlDatabase );
 
-var Knex = require("knex")({
-    client: "mysql",
+var Knex = require('knex')({
+    client: 'mysql',
     connection: {
         host: mysqlHost,
         user: mysqlUser,
@@ -29,8 +31,8 @@ var Knex = require("knex")({
     }
 });
 
-var Bookshelf = require("bookshelf")(Knex);
-Bookshelf.plugin("visibility");
+var Bookshelf = require('bookshelf')(Knex);
+Bookshelf.plugin('visibility');
 Bookshelf.plugin('registry');
 
 global.Knex = Knex;
@@ -47,9 +49,9 @@ var analytics = require('./app/analytics/analyticsController');
 //var REDIRECT_URL = "http://localhost:9000/oauth2callback";
 
 // Prod
-var CLIENT_ID = "200067319298-cpblm10r8s9o29kjgtahjek2eib7eigk.apps.googleusercontent.com";
-var CLIENT_SECRET = "nQ4NK9cKoPl8fWXDF9V-PsTU";
-var REDIRECT_URL = "http://localhost:9000/oauth2callback";
+var CLIENT_ID = '200067319298-cpblm10r8s9o29kjgtahjek2eib7eigk.apps.googleusercontent.com';
+var CLIENT_SECRET = 'nQ4NK9cKoPl8fWXDF9V-PsTU';
+var REDIRECT_URL = 'http://localhost:9000/oauth2callback';
 
 //var CLIENT_ID = "200067319298-gu6eos6o5cmeaat2tsmlu1s6rk5gjpnd.apps.googleusercontent.com";
 //var CLIENT_SECRET = "kN13wxKxV1RuIFsPDnr2Y8H8";
