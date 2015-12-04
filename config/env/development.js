@@ -54,7 +54,7 @@ module.exports = {
     clientID: process.env.FACEBOOK_ID || 'APP_ID',
     clientSecret: process.env.FACEBOOK_SECRET || 'APP_SECRET',
     baseURL: 'https://',
-    callbackURL: 'http://localhost:9000/oauth2callback',
+    callbackURL: process.env.OAUTH_2_CALLBACK || 'http://localhost:9000/oauth2callback',
     requestURL: 'www.facebook.com/v2.0/dialog/oauth',
     authorizeURL: 'www.facebook.com/v2.0/dialog/oauth',
     accessTokenURL: 'graph.facebook.com/v2.0/oauth/access_token',
@@ -65,7 +65,7 @@ module.exports = {
     clientID: process.env.INSTAGRAM_ID || 'APP_ID',
     clientSecret: process.env.INSTAGRAM_SECRET || 'APP_SECRET',
     baseURL: 'https://api.instagram.com',
-    callbackURL: 'http://localhost:9000/oauth/2/callback',
+    callbackURL: process.env.OAUTH_2_CALLBACK || 'http://localhost:9000/oauth/2/callback',
 //    requestURL: 'https://api.instagram.com/oauth/authorize',
 //    authorizeURL: 'oauth/access_token',
 //    accessTokenURL: '/oauth/access_token',
@@ -78,7 +78,7 @@ module.exports = {
     baseURL: 'https://api.pinterest.com',
     requestURL: '/oauth',
     accessTokenURL: '/v1/oauth/token',
-    callbackURL: 'https://localhost:9000/oauth/2/callback',
+    callbackURL: process.env.OAUTH_2_CALLBACK || 'https://localhost:9000/oauth/2/callback',
 //    requestURL: 'https://api.pinterest.com/oauth/',
     authorizeURL: 'https://api.pinterest.com/v1/oauth/token',
     scope: 'read_public write_public read_relationships write_relationships',
@@ -89,7 +89,7 @@ module.exports = {
     clientSecret: process.env.TWITTER_CONSUMER_SECRET || 'CONSUMER_SECRET',
     accessID: process.env.TWITTER_ACCESS_TOKEN || 'ACCESS_TOKEN',
     accessSecret: process.env.TWITTER_ACCESS_SECRET || 'ACCESS_SECRET',
-    callbackURL: 'http://localhost:9000/oauth/1/callback',
+    callbackURL: process.env.OAUTH_1_CALLBACK || 'http://localhost:9000/oauth/1/callback',
     requestURL: 'https://api.twitter.com/oauth/request_token',
     authorizeURL: 'https://api.twitter.com/oauth/authorize',
     accessTokenURL: 'https://api.twitter.com/oauth/access_token'
@@ -98,7 +98,7 @@ module.exports = {
     clientID: process.env.GOOGLE_ID || 'APP_ID',
     clientSecret: process.env.GOOGLE_SECRET || 'APP_SECRET',
     baseURL: 'https://',
-    callbackURL: 'http://localhost:9000/oauth2callback',
+    callbackURL: process.env.OAUTH_2_CALLBACK || 'http://localhost:9000/oauth2callback',
     requestURL: 'accounts.google.com/o/oauth2/auth',
     accessTokenURL: 'www.googleapis.com/oauth2/v3/token',
     revokeURL: '/o/oauth2/revoke',
@@ -113,12 +113,12 @@ module.exports = {
   linkedin: {
     clientID: process.env.LINKEDIN_ID || 'APP_ID',
     clientSecret: process.env.LINKEDIN_SECRET || 'APP_SECRET',
-    callbackURL: '/api/auth/linkedin/callback'
+    callbackURL: process.env.OAUTH_2_CALLBACK || '/api/auth/linkedin/callback'
   },
   github: {
     clientID: process.env.GITHUB_ID || 'APP_ID',
     clientSecret: process.env.GITHUB_SECRET || 'APP_SECRET',
-    callbackURL: '/api/auth/github/callback'
+    callbackURL: process.env.OAUTH_2_CALLBACK || '/api/auth/github/callback'
   },
   paypal: {
     clientID: process.env.PAYPAL_ID || 'CLIENT_ID',

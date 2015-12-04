@@ -37,3 +37,5 @@ OptionSettings:
     TWITTER_ACCESS_SECRET: EuRPKshrPmH3XVlVPMxjSyE9MUoKz5LlWg7r3GF4F8Bxi
     REDIS_PORT: 6379
     REDIS_HOST: redis-cluster.2yq2tv.0001.usw2.cache.amazonaws.com
+    OAUTH_1_CALLBACK: http://mvp-master-sproutup-co.elasticbeanstalk.com/oauth/1/callback
+    OAUTH_2_CALLBACK: http://mvp-master-sproutup-co.elasticbeanstalk.com/oauth/2/callback

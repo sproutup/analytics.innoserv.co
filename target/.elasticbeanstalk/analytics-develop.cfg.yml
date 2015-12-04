@@ -18,6 +18,10 @@ OptionSettings:
     EC2KeyName: endurance
     InstanceType: t2.micro
     SecurityGroups: webserver
+  aws:elb:loadbalancer:
+    LoadBalancerHTTPSPort: '443'
+    LoadBalancerHTTPPort: '80'
+    SSLCertificateId: arn:aws:iam::772918356582:server-certificate/sproutup-dev
   aws:elasticbeanstalk:environment:
     EnvironmentType: LoadBalanced
   aws:elasticbeanstalk:application:environment:
@@ -35,3 +39,5 @@ OptionSettings:
     TWITTER_ACCESS_SECRET: 57CHtTKYaTknC4eGwUGU3V8SjIR104X0XSacrecu5tCcr
     REDIS_PORT: 6379
     REDIS_HOST: develop.2yq2tv.0001.usw2.cache.amazonaws.com
+    OAUTH_1_CALLBACK: http://mvp-develop-sproutup-co.elasticbeanstalk.com/oauth/1/callback
+    OAUTH_2_CALLBACK: http://mvp-develop-sproutup-co.elasticbeanstalk.com/oauth/2/callback

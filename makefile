@@ -47,3 +47,6 @@ node:
 deploy: push
 	$(MAKE) -C target $(target) deploy
 
+recreate: push
+	$(MAKE) -C target $(target) recreate
+
