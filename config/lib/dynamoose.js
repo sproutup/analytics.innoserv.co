@@ -19,7 +19,7 @@ dynamoose.defaults = {
   create: config.db.create,
   waitForActive: true, // Wait for table to be created
   waitForActiveTimeout: 180000, // 3 minutes
-  prefix: process.env.NODE_ENV
+  prefix: config.db.prefix || process.env.NODE_ENV
 };
 
 if(config.db.local === true){

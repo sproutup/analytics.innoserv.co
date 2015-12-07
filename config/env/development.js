@@ -7,6 +7,7 @@ module.exports = {
     local: false,
     region: 'us-west-2',
     create: true,
+    prefix: 'Dev_',
     uri: process.env.MONGOHQ_URL || process.env.MONGOLAB_URI || 'mongodb://' + (process.env.DB_1_PORT_27017_TCP_ADDR || 'localhost') + '/mean-dev',
     options: {
       user: '',
@@ -98,7 +99,7 @@ module.exports = {
     clientID: process.env.GOOGLE_ID || 'APP_ID',
     clientSecret: process.env.GOOGLE_SECRET || 'APP_SECRET',
     baseURL: 'https://',
-    callbackURL: process.env.OAUTH_2_CALLBACK || 'http://localhost:9000/oauth2callback',
+    callbackURL: process.env.OAUTH_2_CALLBACK || 'http://localhost:9000/oauth/2/callback',
     requestURL: 'accounts.google.com/o/oauth2/auth',
     accessTokenURL: 'www.googleapis.com/oauth2/v3/token',
     revokeURL: '/o/oauth2/revoke',
