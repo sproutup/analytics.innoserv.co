@@ -169,30 +169,30 @@ exports.read = function (req, res) {
 };
 
 /*
- * update access token
+ * Refresh access token
  */
 exports.update = function (req, res) {
   Network.query('userId').eq(req.params.userId)
     .where('provider').eq(req.params.provider)
     .exec()
     .then(function(result){
-      console.log('[network] update get network: ', result);
+      console.log('[network] refresh network: ', result);
       if(result.length === 0){
         req.network = {};
+        res.json('[Network] not found');
       }
       else{
-        console.log(result[0].verifier);
+        console.log(result[0].refreshToken);
         console.log(result[0].provider);
-        oauth.getAccessToken(result[0].token, result[0].provider,
-            result[0].tokenSecret, result[0].verifier)
+        oauth.refreshAccessToken(result[0].refreshToken, result[0].provider)
           .then(function(access){
-            console.log('[network] access token: ', access);
+            console.log('[network] refresh access token: ', access);
             return Network.update(
               {userId: result[0].userId, provider: result[0].provider},
               {$PUT: {
                        accessToken: access.accessToken,
                        accessSecret: access.accessSecret,
-                       refreshToken: access.refreshToken,
+//                       refreshToken: access.refreshToken,
                        identifier: access.identifier,
                        handle: access.handle,
                        status: 1}});

@@ -107,6 +107,7 @@ OAuthService.getAccessToken = function (token, provider, tokenSecret, verifier) 
       return OAuth2.getAccessToken(token, config.google)
          .then(function(response){
           result.accessToken = response[0];
+          result.refreshToken = response[1];
           return result;
         });
     case 'fb':
@@ -115,6 +116,7 @@ OAuthService.getAccessToken = function (token, provider, tokenSecret, verifier) 
       return OAuth2.getAccessToken(token, config.facebook)
          .then(function(response){
           result.accessToken = response[0];
+          result.refreshToken = response[1];
           return result;
         });
     case 'ig':
@@ -123,6 +125,7 @@ OAuthService.getAccessToken = function (token, provider, tokenSecret, verifier) 
       return OAuth2.getAccessToken(token, config.instagram)
          .then(function(response){
           result.accessToken = response[0];
+          result.refreshToken = response[1];
           result.identifier = response[2].user.id;
           result.handle = response[2].user.username;
           return result;
@@ -133,6 +136,7 @@ OAuthService.getAccessToken = function (token, provider, tokenSecret, verifier) 
       return OAuth2.getAccessToken(token, config.pinterest)
          .then(function(response){
           result.accessToken = response[0];
+          result.refreshToken = response[1];
 //          result.identifier = response[2].user.id;
 //          result.handle = response[2].user.username;
           return result;
@@ -146,6 +150,48 @@ OAuthService.getAccessToken = function (token, provider, tokenSecret, verifier) 
           result.accessSecret = response[1];
           result.identifier = response[2].user_id;
           result.handle = response[2].screen_name;
+          return result;
+        });
+    default:
+      return Promise.reject('Invalid provider');
+  }
+};
+
+OAuthService.refreshAccessToken = function (refreshToken, provider, tokenSecret, verifier) {
+  console.log('[oauth] refresh access token for: ', provider);
+  if (_.isUndefined(provider)) {
+    return Promise.reject('Invalid provider');
+  }
+  var params = {
+    config: {},
+    scope: '',
+    provider: provider
+  };
+  var result = {
+    identifier: '',
+    handle: '',
+    refreshToken: null,
+    accessToken: null,
+    accessSecret: null
+  };
+
+  switch(provider){
+    case 'ga':
+      config.google.verifier = verifier;
+      config.google.tokenSecret = tokenSecret;
+      return OAuth2.refreshAccessToken(refreshToken, config.google)
+         .then(function(response){
+          console.log(response);
+          result.accessToken = response[0];
+          return result;
+        });
+    case 'yt':
+      config.google.verifier = verifier;
+      config.google.tokenSecret = tokenSecret;
+      return OAuth2.refreshAccessToken(refreshToken, config.google)
+         .then(function(response){
+          console.log(response);
+          result.accessToken = response[0];
           return result;
         });
     default:
@@ -282,5 +328,38 @@ OAuth2.getAccessToken = function(token, config){
     console.log(err);
   });
 };
+
+/*
+ * refresh access token
+ */
+OAuth2.refreshAccessToken = function(refreshToken, config){
+  var OAuth2 = OAuth.OAuth2;
+
+  var oauth2 = new OAuth2(
+      config.clientID,
+      config.clientSecret,
+      config.baseURL,
+      null,
+      config.accessTokenURL,
+      null);
+
+  var params = {
+    grant_type: 'refresh_token'
+  };
+
+  console.log('url:', oauth2._getAccessTokenUrl());
+  console.log('params:', params);
+  console.log('config:', config);
+
+  return oauth2.getOAuthAccessTokenAsync(refreshToken, params)
+    .then(function(res){
+      console.log('access: ', res);
+      return res;
+    })
+  .catch(function(err){
+    console.log(err);
+  });
+};
+
 
 module.exports = OAuthService;
