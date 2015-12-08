@@ -337,6 +337,7 @@ exports.networkByUserID = function (req, res, next, id) {
     next();
   })
   .catch(function(err){
+    console.log('[Middleware]',err);
     return next(err);
   });
 };
