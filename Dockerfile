@@ -23,7 +23,7 @@ COPY public public
 COPY server.js gulpfile.js ./
 COPY .csslintrc .jshintrc license makefile .slugignore ./
 
-CMD [ "npm", "start" ]
+CMD [ "gulp", "run" ]
 
 # Port 3000 for server
 # Port 35729 for livereload

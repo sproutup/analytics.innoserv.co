@@ -1,7 +1,7 @@
 'use strict';
 
 module.exports = {
-  secure: true,
+  secure: false,
   port: process.env.PORT || 8443,
   db: {
     local: false,
