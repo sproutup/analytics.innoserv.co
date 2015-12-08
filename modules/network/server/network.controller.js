@@ -209,6 +209,10 @@ exports.update = function (req, res) {
             });
           });
       }
+    })
+    .catch(function(err){
+      console.log('[Network] ', err);
+      res.json(err);
     });
 };
 
