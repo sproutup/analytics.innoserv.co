@@ -172,6 +172,7 @@ exports.read = function (req, res) {
  * Refresh access token
  */
 exports.update = function (req, res) {
+  console.log('[Network] update');
   Network.query('userId').eq(req.params.userId)
     .where('provider').eq(req.params.provider)
     .exec()
@@ -325,7 +326,7 @@ exports.networkByUserID = function (req, res, next, id) {
     });
   }
   Network.query('userId').eq(id).exec().then(function(result){
-    console.log('get network: ', result.length);
+    console.log('[middelware] get network: ', result.length);
     if(result.length === 0){
       req.network = [];
     }
