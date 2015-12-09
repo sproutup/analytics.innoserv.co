@@ -324,6 +324,7 @@ exports.networkByUserID = function (req, res, next, id) {
       message: 'User ID is invalid'
     });
   }
+  req.userId = id;
   Network.query('userId').eq(id).exec().then(function(result){
     console.log('[middelware] get network: ', result.length);
     console.log('middleware: ', req.httpVersion);
@@ -333,7 +334,6 @@ exports.networkByUserID = function (req, res, next, id) {
     else{
       req.network = result;
     }
-    req.userId = id;
     next();
   })
   .catch(function(err){
