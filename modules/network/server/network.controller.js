@@ -135,9 +135,9 @@ exports.updateAccount = function (req, res) {
     })
     .then(function(data){
       return Network.update({userId: req.userId, provider: req.provider},
-        {$PUT: {identifier: data.webProperties[0].profiles[0].id,
+        {$PUT: {identifier: data.identifier,
                  name: data.name,
-                 url: data.webProperties[0].websiteUrl}});
+                 url: data.url}});
     })
     .then(function(data){
       console.log(data);
