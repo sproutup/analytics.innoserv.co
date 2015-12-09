@@ -181,7 +181,7 @@ OAuthService.refreshAccessToken = function (refreshToken, provider, tokenSecret,
       config.google.tokenSecret = tokenSecret;
       return OAuth2.refreshAccessToken(refreshToken, config.google)
          .then(function(response){
-          console.log(response);
+//          console.log(response);
           result.accessToken = response[0];
           return result;
         });
@@ -190,7 +190,7 @@ OAuthService.refreshAccessToken = function (refreshToken, provider, tokenSecret,
       config.google.tokenSecret = tokenSecret;
       return OAuth2.refreshAccessToken(refreshToken, config.google)
          .then(function(response){
-          console.log(response);
+//          console.log(response);
           result.accessToken = response[0];
           return result;
         });
@@ -315,13 +315,13 @@ OAuth2.getAccessToken = function(token, config){
     redirect_uri: config.callbackURL
   };
 
-  console.log('url:', oauth2._getAccessTokenUrl());
-  console.log('params:', params);
-  console.log('config:', config);
+//  console.log('url:', oauth2._getAccessTokenUrl());
+//  console.log('params:', params);
+//  console.log('config:', config);
 
   return oauth2.getOAuthAccessTokenAsync(config.verifier, params)
     .then(function(res){
-      console.log('access: ', res);
+      console.log('[OAuth2] got access token');
       return res;
     })
   .catch(function(err){
@@ -347,13 +347,13 @@ OAuth2.refreshAccessToken = function(refreshToken, config){
     grant_type: 'refresh_token'
   };
 
-  console.log('url:', oauth2._getAccessTokenUrl());
-  console.log('params:', params);
-  console.log('config:', config);
+//  console.log('url:', oauth2._getAccessTokenUrl());
+//  console.log('params:', params);
+//  console.log('config:', config);
 
   return oauth2.getOAuthAccessTokenAsync(refreshToken, params)
     .then(function(res){
-      console.log('access: ', res);
+      console.log('[OAuth2] got access token');
       return res;
     })
   .catch(function(err){

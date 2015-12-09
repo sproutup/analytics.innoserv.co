@@ -173,23 +173,23 @@ exports.read = function (req, res) {
  */
 exports.update = function (req, res) {
   console.log('[Network] update');
-  Network.query('userId').eq(req.params.userId)
+  Network.queryOne('userId').eq(req.params.userId)
     .where('provider').eq(req.params.provider)
     .exec()
     .then(function(result){
-      console.log('[network] refresh network: ', result);
-      if(result.length === 0){
+      if(_.isUndefined(result)){
         req.network = {};
         res.json('[Network] not found');
       }
       else{
-        console.log(result[0].refreshToken);
-        console.log(result[0].provider);
-        oauth.refreshAccessToken(result[0].refreshToken, result[0].provider)
+      console.log('[network] refresh network: ', result.provider);
+//        console.log(result[0].refreshToken);
+//        console.log(result[0].provider);
+        oauth.refreshAccessToken(result.refreshToken, result.provider)
           .then(function(access){
-            console.log('[network] refresh access token: ', access);
+            console.log('[network] refresh access token: ', access.accessToken);
             return Network.update(
-              {userId: result[0].userId, provider: result[0].provider},
+              {userId: result.userId, provider: result.provider},
               {$PUT: {
                        accessToken: access.accessToken,
                        accessSecret: access.accessSecret,
@@ -199,12 +199,11 @@ exports.update = function (req, res) {
                        status: 1}});
           })
           .then(function(data){
-            console.log(data);
             res.json('[network] update success');
           })
           .catch(function(err){
             Network.update(
-              {userId: result[0].userId, provider: result[0].provider},
+              {userId: result.userId, provider: result.provider},
               {$PUT: {status: -1}}).then(function(result){
                 res.json('[network] update error');
             });
@@ -213,7 +212,7 @@ exports.update = function (req, res) {
     })
     .catch(function(err){
       console.log('[Network] ', err);
-      res.json(err);
+      res.json('[Network] not found');
     });
 };
 
@@ -319,7 +318,7 @@ exports.readStats = function (req, res) {
  * Middleware
  */
 exports.networkByUserID = function (req, res, next, id) {
-  console.log('middleware');
+  console.log('middleware: ', req.httpVersion);
   if (_.isUndefined(id)) {
     return res.status(400).send({
       message: 'User ID is invalid'
@@ -327,6 +326,7 @@ exports.networkByUserID = function (req, res, next, id) {
   }
   Network.query('userId').eq(id).exec().then(function(result){
     console.log('[middelware] get network: ', result.length);
+    console.log('middleware: ', req.httpVersion);
     if(result.length === 0){
       req.network = [];
     }
