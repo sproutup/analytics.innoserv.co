@@ -1,10 +1,10 @@
 EnvironmentConfigurationMetadata:
-  Description: Analytics server standard configuration.
+  Description: Node develop standard configuration.
 AWSConfigurationTemplateVersion: 1.1.0.0
 EnvironmentTier:
   Name: WebServer
   Type: Standard
-SolutionStack: 64bit Amazon Linux 2015.03 v2.0.2 running Docker 1.7.1
+SolutionStack: 64bit Amazon Linux 2015.09 v2.0.4 running Docker 1.7.1
 OptionSettings:
   aws:elasticbeanstalk:command:
     Timeout: 1800

@@ -12,6 +12,8 @@ var googleAnalytics = require('modules/googleAnalytics/server/googleAnalytics.se
 var pinterest = require('modules/pinterest/server/pinterest.service');
 var facebook = require('modules/facebook/server/facebook.service');
 var twitter = require('modules/core/server/twitter.service');
+var oauth = require('modules/oauth/server/oauth.service');
+var _ = require('lodash');
 
 /**
  *  * User Reach Schema
@@ -53,6 +55,49 @@ var NetworkSchema  = new Schema({
 {
   throughput: {read: 15, write: 5}
 });
+
+
+NetworkSchema.statics.refreshAccessToken = Promise.method(function(userId, provider){
+  var _this = this;
+  return _this.queryOne('userId').eq(userId)
+    .where('provider').eq(provider)
+    .exec()
+    .then(function(result){
+      if(_.isUndefined(result)){
+        throw new Error('[Network] not found');
+      }
+      else{
+        console.log('[network] refresh network: ', result.provider);
+        oauth.refreshAccessToken(result.refreshToken, result.provider)
+          .then(function(access){
+            console.log('[network] refresh access token: ', access.accessToken);
+            return _this.update(
+              {userId: result.userId, provider: result.provider},
+              {$PUT: {
+                 accessToken: access.accessToken,
+                 accessSecret: access.accessSecret,
+                 identifier: access.identifier,
+                 handle: access.handle,
+                 status: 1}});
+          })
+          .catch(function(err){
+            Network.update(
+              {userId: result.userId, provider: result.provider},
+              {$PUT: {status: -1}}).then(function(result){
+                throw new Error('[network] update error');
+            });
+          });
+      }
+    })
+    .catch(function(err){
+      console.log('[Network] ', err);
+      throw new Error('[Network] not found', err);
+    });
+});
+
+NetworkSchema.methods.toJsonSafe = function(){
+  return _.pick(this, ['userId', 'provider', 'status', 'identifier', 'name', 'url']);
+}
 
 NetworkSchema.methods.getUser = Promise.method(function(){
   console.log('network - get user');
@@ -165,4 +210,6 @@ NetworkSchema.methods.getReach = Promise.method(function(){
   }
 });
 
-dynamoose.model('Network', NetworkSchema);
+var Network = dynamoose.model('Network', NetworkSchema);
+
+
