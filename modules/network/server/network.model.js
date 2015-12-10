@@ -81,7 +81,7 @@ NetworkSchema.statics.refreshAccessToken = Promise.method(function(userId, provi
                  status: 1}});
           })
           .catch(function(err){
-            Network.update(
+            _.update(
               {userId: result.userId, provider: result.provider},
               {$PUT: {status: -1}}).then(function(result){
                 throw new Error('[network] update error');
@@ -97,7 +97,7 @@ NetworkSchema.statics.refreshAccessToken = Promise.method(function(userId, provi
 
 NetworkSchema.methods.toJsonSafe = function(){
   return _.pick(this, ['userId', 'provider', 'status', 'identifier', 'name', 'url']);
-}
+};
 
 NetworkSchema.methods.getUser = Promise.method(function(){
   console.log('network - get user');

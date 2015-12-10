@@ -24,7 +24,7 @@ exports.listAll = function (req, res) {
 
   Network.scan().exec().then(function(items) {
     console.log('user network result', items);
-    res.json(_.map(items, function(item){return item.toJsonSafe()}));
+    res.json(_.map(items, function(item){return item.toJsonSafe();}));
   })
   .catch(function(err){
     res.json(err);
@@ -36,7 +36,7 @@ exports.listAll = function (req, res) {
  */
 exports.list = function (req, res) {
   console.log('[network] list ctrl');
-  res.json(_.map(req.network, function(item){return item.toJsonSafe()}));
+  res.json(_.map(req.network, function(item){return item.toJsonSafe();}));
 };
 
 /**
