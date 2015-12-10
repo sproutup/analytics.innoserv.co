@@ -18,6 +18,6 @@ module.exports = function (app) {
     .delete(controller.delete);
 
   // Finish by binding the middleware
-  app.param('userId', controller.userReachByID);
-  app.param('provider', controller.reachByProvider);
+//  app.param('userId', controller.userReachByID);
+//  app.param('provider', controller.reachByProvider);
 };

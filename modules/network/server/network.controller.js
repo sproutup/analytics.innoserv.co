@@ -20,10 +20,8 @@ var twitter = require('modules/core/server/twitter.service');
  * List all network
  */
 exports.listAll = function (req, res) {
-  console.log('user reach controller');
-
+  console.log('[Network] list all');
   Network.scan().exec().then(function(items) {
-    console.log('user network result', items);
     res.json(_.map(items, function(item){return item.toJsonSafe();}));
   })
   .catch(function(err){
@@ -35,8 +33,14 @@ exports.listAll = function (req, res) {
  * List users network
  */
 exports.list = function (req, res) {
-  console.log('[network] list ctrl');
-  res.json(_.map(req.network, function(item){return item.toJsonSafe();}));
+  console.log('[network] list');
+  Network.query({userId: req.userId}).exec()
+    .then(function(data){
+      res.json(_.map(data, function(item){return item.toJsonSafe();}));
+    })
+    .catch(function(err){
+      res.json(err);
+    });
 };
 
 /**
@@ -183,47 +187,6 @@ exports.update = function (req, res) {
     .catch(function(error){
       res.json('[Network] not found');
     });
-/*
-  Network.queryOne('userId').eq(req.params.userId)
-    .where('provider').eq(req.params.provider)
-    .exec()
-    .then(function(result){
-      if(_.isUndefined(result)){
-        req.network = {};
-        res.json('[Network] not found');
-      }
-      else{
-      console.log('[network] refresh network: ', result.provider);
-//        console.log(result[0].refreshToken);
-//        console.log(result[0].provider);
-        oauth.refreshAccessToken(result.refreshToken, result.provider)
-          .then(function(access){
-            console.log('[network] refresh access token: ', access.accessToken);
-            return Network.update(
-              {userId: result.userId, provider: result.provider},
-              {$PUT: {
-                       accessToken: access.accessToken,
-                       accessSecret: access.accessSecret,
-                       identifier: access.identifier,
-                       handle: access.handle,
-                       status: 1}});
-          })
-          .then(function(data){
-            res.json('[network] update success');
-          })
-          .catch(function(err){
-            Network.update(
-              {userId: result.userId, provider: result.provider},
-              {$PUT: {status: -1}}).then(function(result){
-                res.json('[network] update error');
-            });
-          });
-      }
-    })
-    .catch(function(err){
-      console.log('[Network] ', err);
-      res.json('[Network] not found');
-    }); */
 };
 
 
@@ -328,28 +291,13 @@ exports.readStats = function (req, res) {
  * Middleware
  */
 exports.networkByUserID = function (req, res, next, id) {
-  console.log('middleware: ', req.httpVersion);
+  console.log('networkByUserID: ', req.httpVersion);
   if (_.isUndefined(id)) {
-    return res.status(400).send({
-      message: 'User ID is invalid'
-    });
+    next(new Error('Invalid user id'));
   }
   req.userId = id;
-  Network.query('userId').eq(id).exec().then(function(result){
-    console.log('[middelware] get network: ', result.length);
-    console.log('middleware: ', req.httpVersion);
-    if(result.length === 0){
-      req.network = [];
-    }
-    else{
-      req.network = result;
-    }
-    next();
-  })
-  .catch(function(err){
-    console.log('[Middleware]',err);
-    return next(err);
-  });
+  console.log('networkByUserID next()');
+  next();
 };
 
 /**
