@@ -182,7 +182,7 @@ exports.update = function (req, res) {
   console.log('[Network] update');
   Network.refreshAccessToken(req.params.userId, req.params.provider)
     .then(function(result){
-      res.json('[network] update success');
+      return res.json('[network] update success');
     })
     .catch(function(error){
       res.json('[Network] not found');
