@@ -24,7 +24,7 @@ exports.listAll = function (req, res) {
 
   Network.scan().exec().then(function(items) {
     console.log('user network result', items);
-    res.json(items);
+    res.json(_.map(items, function(item){return item.toJsonSafe()}));
   })
   .catch(function(err){
     res.json(err);
@@ -36,7 +36,7 @@ exports.listAll = function (req, res) {
  */
 exports.list = function (req, res) {
   console.log('[network] list ctrl');
-  res.json(req.network);
+  res.json(_.map(req.network, function(item){return item.toJsonSafe()}));
 };
 
 /**
@@ -93,7 +93,7 @@ exports.create = function (req, res) {
     })
     .then(function(data){
       console.log('[network] done');
-      res.json(req.network);
+      res.json(req.network.toJsonSafe());
     })
     .catch(function(err){
       console.log(err);
@@ -163,8 +163,11 @@ exports.read = function (req, res) {
       else{
         req.network = result[0];
       }
-      res.json(req.network);
-//      res.json(_.omit(req.network, ['token', 'verifier', 'accessToken']));
+      res.json(req.network.toJsonSafe());
+      //res.json(_.pick(req.network, ['userId', 'provider', 'status', 'identifier', 'name', 'url']));
+    })
+    .catch(function(error){
+      res.json(error);
     });
 };
 
@@ -173,6 +176,14 @@ exports.read = function (req, res) {
  */
 exports.update = function (req, res) {
   console.log('[Network] update');
+  Network.refreshAccessToken(req.params.userId, req.params.provider)
+    .then(function(result){
+      res.json('[network] update success');
+    })
+    .catch(function(error){
+      res.json('[Network] not found');
+    });
+/*
   Network.queryOne('userId').eq(req.params.userId)
     .where('provider').eq(req.params.provider)
     .exec()
@@ -193,7 +204,6 @@ exports.update = function (req, res) {
               {$PUT: {
                        accessToken: access.accessToken,
                        accessSecret: access.accessSecret,
-//                       refreshToken: access.refreshToken,
                        identifier: access.identifier,
                        handle: access.handle,
                        status: 1}});
@@ -213,7 +223,7 @@ exports.update = function (req, res) {
     .catch(function(err){
       console.log('[Network] ', err);
       res.json('[Network] not found');
-    });
+    }); */
 };
 
 
@@ -352,6 +362,7 @@ exports.networkByToken= function (req, res, next, token) {
       message: 'Token is invalid'
     });
   }
+  req.token = token;
   Network.query('token').eq(token).exec().then(function(result){
     console.log('get network: ', result);
     if(result.length === 0){
@@ -360,7 +371,6 @@ exports.networkByToken= function (req, res, next, token) {
       });
     }
     req.network = result[0];
-    req.token = token;
     next();
   })
   .catch(function(err){
