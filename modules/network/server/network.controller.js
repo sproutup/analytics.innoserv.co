@@ -179,12 +179,14 @@ exports.read = function (req, res) {
  * Refresh access token
  */
 exports.update = function (req, res) {
-  console.log('[Network] update');
+  console.log('[Network] update', req.params);
   Network.refreshAccessToken(req.params.userId, req.params.provider)
     .then(function(result){
+      console.log('update success', result);
       return res.json('[network] update success');
     })
     .catch(function(error){
+      console.log('update failed', error);
       res.json('[Network] not found');
     });
 };
