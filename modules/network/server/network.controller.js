@@ -291,12 +291,11 @@ exports.readStats = function (req, res) {
  * Middleware
  */
 exports.networkByUserID = function (req, res, next, id) {
-  console.log('networkByUserID: ', req.httpVersion);
+  console.log('[param] validate userId: ', id);
   if (_.isUndefined(id)) {
     next(new Error('Invalid user id'));
   }
   req.userId = id;
-  console.log('networkByUserID next()');
   next();
 };
 
@@ -330,7 +329,7 @@ exports.networkByToken= function (req, res, next, token) {
  * Middleware
  */
 exports.networkByProvider = function (req, res, next, provider) {
-  console.log('middleware');
+  console.log('[param] validate provider: ', provider);
   if (_.isUndefined(provider)) {
     return res.status(400).send({
       message: 'Provider is invalid'
