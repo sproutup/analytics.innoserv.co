@@ -59,6 +59,8 @@ var NetworkSchema  = new Schema({
 
 NetworkSchema.statics.refreshAccessToken = Promise.method(function(userId, provider){
   var _this = this;
+  var _result = null;
+
   return _this.queryOne('userId').eq(userId)
     .where('provider').eq(provider)
     .exec()
@@ -67,31 +69,28 @@ NetworkSchema.statics.refreshAccessToken = Promise.method(function(userId, provi
         throw new Error('[Network] not found');
       }
       else{
+        _result = result;
         console.log('[network] refresh network: ', result.provider);
-        oauth.refreshAccessToken(result.refreshToken, result.provider)
-          .then(function(access){
-            console.log('[network] refresh access token: ', access.accessToken);
-            return _this.update(
-              {userId: result.userId, provider: result.provider},
-              {$PUT: {
-                 accessToken: access.accessToken,
-                 accessSecret: access.accessSecret,
-                 identifier: access.identifier,
-                 handle: access.handle,
-                 status: 1}});
-          })
-          .catch(function(err){
-            _.update(
-              {userId: result.userId, provider: result.provider},
-              {$PUT: {status: -1}}).then(function(result){
-                throw new Error('[network] update error');
-            });
-          });
+        return oauth.refreshAccessToken(result.refreshToken, result.provider);
       }
     })
+    .then(function(access){
+      console.log('[network] refresh access token: ', access.accessToken);
+      return _this.update(
+        {userId: _result.userId, provider: _result.provider},
+        {$PUT: {
+           accessToken: access.accessToken,
+           accessSecret: access.accessSecret,
+           identifier: access.identifier,
+           handle: access.handle,
+           status: 1}});
+    })
     .catch(function(err){
-      console.log('[Network] ', err);
-      throw new Error('[Network] not found', err);
+      console.log('ups error: ', err);
+      _this.update(
+        {userId: _result.userId, provider: _result.provider},
+        {$PUT: {status: -1}});
+      throw err;
     });
 });
 

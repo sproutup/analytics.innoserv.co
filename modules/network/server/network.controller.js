@@ -187,7 +187,9 @@ exports.update = function (req, res) {
     })
     .catch(function(error){
       console.log('update failed', error);
-      res.json('[Network] not found');
+      res.status(400).send({
+        message: error
+      });
     });
 };
 

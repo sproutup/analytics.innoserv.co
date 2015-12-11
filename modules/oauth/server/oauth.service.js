@@ -358,6 +358,7 @@ OAuth2.refreshAccessToken = function(refreshToken, config){
     })
   .catch(function(err){
     console.log(err);
+    throw err;
   });
 };
 
