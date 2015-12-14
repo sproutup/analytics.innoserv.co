@@ -116,6 +116,7 @@ exports.create = function (req, res) {
  * Update user info
  */
 exports.readAccount = function (req, res) {
+  console.log('[Network] ctrl: read account info');
   Network.get({userId: req.userId, provider: req.provider})
     .then(function(data){
       return data.getUser();
@@ -133,6 +134,7 @@ exports.readAccount = function (req, res) {
  * Update user info
  */
 exports.updateAccount = function (req, res) {
+  console.log('[Network] ctrl: update account info');
   Network.get({userId: req.userId, provider: req.provider})
     .then(function(data){
       return data.getUser();

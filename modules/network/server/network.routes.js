@@ -34,11 +34,6 @@ module.exports = function (app) {
     .delete(controller.delete);
 
   // Single network routes
-  app.route('/api/user/:userId/network/:provider/refresh')
-    .get(controller.update)
-    .put(controller.update);
-
-  // Single network routes
   app.route('/api/user/:userId/network/:provider/account')
     .get(controller.readAccount)
     .put(controller.updateAccount);

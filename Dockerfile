@@ -1,10 +1,10 @@
-FROM sproutupco/alpine-node
+FROM sproutupco/ubuntu-node
 
 WORKDIR /home/node
 
 # update
-RUN apk update
-RUN npm install -g npm@latest
+# RUN apk update
+# RUN npm install -g npm@latest
 RUN npm install -g bower
 RUN npm install -g gulp
 
