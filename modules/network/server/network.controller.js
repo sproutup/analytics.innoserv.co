@@ -14,7 +14,7 @@ var oauth = require('modules/oauth/server/oauth.service');
 var instagram = require('modules/instagram/server/instagram.service');
 var facebook = require('modules/facebook/server/facebook.service');
 var twitter = require('modules/core/server/twitter.service');
-
+var Queue = require('modules/core/server/circularQueue');
 
 /**
  * List all network
@@ -67,14 +67,15 @@ exports.create = function (req, res) {
     })
     .then(function(access){
       console.log('[network] save access token: ', access);
-      return Network.update(
-        {userId: req.network.userId, provider: req.network.provider},
-        {$PUT: { accessToken: access.accessToken,
-                 refreshToken: access.refreshToken,
-                 accessSecret: access.accessSecret,
-                 identifier: access.identifier,
-                 handle: access.handle,
-                 status: 1}});
+      return req.network.saveAccessToken(access);
+//      return Network.update(
+//        {userId: req.network.userId, provider: req.network.provider},
+//        {$PUT: { accessToken: access.accessToken,
+//                 refreshToken: access.refreshToken,
+//                 accessSecret: access.accessSecret,
+//                 identifier: access.identifier,
+//                 handle: access.handle,
+//                 status: 1}});
     })
     .then(function(network){
       console.log('network:::', network);
@@ -290,6 +291,30 @@ exports.readStats = function (req, res) {
       }
     });
     */
+};
+
+/**
+ * Add all to queue
+ */
+exports.init = function (req, res) {
+  var provider = req.params.provider;
+  var q = new Queue('queue:network:' + provider);
+  return q.clear()
+    .then(function(){
+      return q.last();
+    })
+    .then(function(data){
+      Network.query({provider: provider}).exec();
+    })
+    .then(function(val){
+      if(val.length>0){
+        return q.add(val);
+      }
+    })
+    .then(function(result){
+      console.log(result);
+      res.json({res: result});
+    });
 };
 
 

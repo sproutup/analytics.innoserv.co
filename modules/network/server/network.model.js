@@ -56,6 +56,24 @@ var NetworkSchema  = new Schema({
   throughput: {read: 15, write: 5}
 });
 
+NetworkSchema.statics.saveAccessToken = Promise.method(function(access){
+  var _this = this;
+//  this.accessToken = access.accessToken;
+//  this.accessSecret = access.accessSecret;
+//  this.identifier = access.identifier;
+//  this.handle = access.handle;
+//  this.status = 1;
+  return _this.update({userId: _this.userId, provider: _this.provider}, {$PUT: {accessToken: access.accessToken, status: 1}})
+    .then(function(data){
+      console.log('[save access token]: ', _this);
+      return oauth.saveAccessToken(_this.userId, _this.provider, access.accessToken, access.refreshToken);
+      //return data;
+    })
+    .catch(function(err){
+      console.log(err);
+      throw err;
+    });
+});
 
 NetworkSchema.statics.refreshAccessToken = Promise.method(function(userId, provider){
   var _this = this;
@@ -71,8 +89,11 @@ NetworkSchema.statics.refreshAccessToken = Promise.method(function(userId, provi
       else{
         _result = result;
         console.log('[network] refresh network: ', result.provider);
-        return oauth.refreshAccessToken(result.refreshToken, result.provider);
+        return result;
       }
+    })
+    .then(function(network){
+      return oauth.refreshAccessToken(network.refreshToken, network.provider);
     })
     .then(function(access){
       console.log('[network] refresh access token: ', access.accessToken);

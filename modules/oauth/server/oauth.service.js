@@ -4,6 +4,8 @@ var config = require('config/config');
 var Promise = require('bluebird');
 var _ = require('lodash');
 var OAuth = require('oauth');
+var dynamoose = require('dynamoose');
+var OauthModel = dynamoose.model('Oauth');
 var querystring = require('querystring');
 var crypto = require('crypto');
 
@@ -155,6 +157,25 @@ OAuthService.getAccessToken = function (token, provider, tokenSecret, verifier) 
     default:
       return Promise.reject('Invalid provider');
   }
+};
+
+OAuthService.saveAccessToken = function (userId, provider, accessToken, refreshToken){
+  console.log('[oauth] save access token for: ', provider);
+
+  return OauthModel.create({
+    userId: 4,
+    provider: 'test'
+   });
+
+//  var item = new OauthModel();
+//
+//  item.userId = userId;
+//  item.provider = provider;
+//  item.accessToken = accessToken;
+//  item.refreshToken = refreshToken;
+//  item.status = 1;
+//
+//  return item.save();
 };
 
 OAuthService.refreshAccessToken = function (refreshToken, provider, tokenSecret, verifier) {

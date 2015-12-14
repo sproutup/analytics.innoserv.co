@@ -4,33 +4,29 @@ var defaultEnvConfig = require('./default');
 
 module.exports = {
   db: {
-    uri: process.env.MONGOHQ_URL || process.env.MONGOLAB_URI || 'mongodb://' + (process.env.DB_1_PORT_27017_TCP_ADDR || 'localhost') + '/mean-test',
-    prefix: 'Test_',
-    options: {
-      user: '',
-      pass: ''
-    },
-    // Enable mongoose debug mode
-    debug: process.env.MONGODB_DEBUG || false,
-    knex: {
-      client: 'mysql',
-      connection: {
-        host: '127.0.0.1',
-        user: 'root',
-        password: 'root',
-        database: 'sproutup_db'
-      },
-      pool: {
-        min: 2,
-        max: 10
-      }  
-    }
+    local: true,
+    region: 'us-west-2',
+    create: true,
+    prefix: 'Test_'
   },
   port: process.env.PORT || 3001,
   redis: {
     port: 6379,          // Redis port
     host: '127.0.0.1',   // Redis host
     db: 1
+  },
+  knex: {
+    client: 'mysql',
+    connection: {
+      host: process.env.MYSQL_HOST || '127.0.0.1',
+      user: process.env.MYSQL_USER || 'root',
+      password: process.env.MYSQL_PASSWORD || 'root',
+      database: process.env.MYSQL_DATABASE || 'sproutup_db'
+    },
+    pool: {
+      min: 2,
+      max: 10
+    }
   },
   app: {
     title: defaultEnvConfig.app.title + ' - Test Environment'

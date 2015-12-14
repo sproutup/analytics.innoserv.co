@@ -7,6 +7,7 @@ var _ = require('lodash'),
   defaultAssets = require('./config/assets/default'),
   testAssets = require('./config/assets/test'),
   gulp = require('gulp'),
+  debug = require('gulp-debug'),
   gulpLoadPlugins = require('gulp-load-plugins'),
   runSequence = require('run-sequence'),
   plugins = gulpLoadPlugins(),
@@ -135,27 +136,26 @@ gulp.task('peter', function (done) {
 // Mocha tests task
 gulp.task('mocha', function (done) {
   // Open mongoose connections
-  var mongoose = require('./config/lib/mongoose.js');
+  require('app-module-path').addPath(__dirname);
+  var dynamoose = require('./config/lib/dynamoose.js');
+  dynamoose.loadModels();
   var error;
 
-  // Connect mongoose
-  mongoose.connect(function() {
-    // Run the tests
-    gulp.src(testAssets.tests.server)
-      .pipe(plugins.mocha({
-        reporter: 'spec'
-      }))
-      .on('error', function (err) {
-        // If an error occurs, save it
-        error = err;
-      })
-      .on('end', function() {
-        // When the tests are done, disconnect mongoose and pass the error state back to gulp
-        mongoose.disconnect(function() {
-          done(error);
-        });
-      });
-  });
+  // Run the tests
+  gulp.src(['modules/network/tests/server/network.model.tests.js'], { read: false })
+//  gulp.src(testAssets.tests.server)
+    .pipe(debug({title: 'mocha:'}))
+    .pipe(plugins.mocha({
+      reporter: 'spec'
+    }))
+    .on('error', function (err) {
+      // If an error occurs, save it
+      error = err;
+    })
+    .on('end', function() {
+      // When the tests are done, disconnect mongoose and pass the error state back to gulp
+      done(error);
+    });
 
 });
 
@@ -193,9 +193,22 @@ gulp.task('build', function(done) {
   runSequence('env:dev' ,'lint', ['uglify', 'cssmin'], done);
 });
 
+gulp.task('watchtest', function(done) {
+  gulp.watch(defaultAssets.server.allJS, ['test:server']);
+});
+
 // Run the project tests
 gulp.task('test', function(done) {
-  runSequence('env:test', ['karma', 'mocha'], done);
+  //runSequence('env:test', ['karma', 'mocha'], done);
+  runSequence('env:test', ['mocha'], done);
+});
+
+gulp.task('test:server', function (done) {
+    runSequence('env:test', 'lint', 'mocha', ['watchtest'], done);
+});
+
+gulp.task('test:client', function (done) {
+    runSequence('env:test', 'lint', 'karma', done);
 });
 
 // Run the project in development mode
