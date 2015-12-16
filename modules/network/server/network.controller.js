@@ -9,8 +9,9 @@ var dynamoose = require('dynamoose');
 var Promise = require('bluebird');
 var _ = require('lodash');
 var Network = dynamoose.model('Network');
+var OAuth = dynamoose.model('oauth');
 var UserReach = dynamoose.model('UserReach');
-var oauth = require('modules/oauth/server/oauth.service');
+var oauthService = require('modules/oauth/server/oauth.service');
 var instagram = require('modules/instagram/server/instagram.service');
 var facebook = require('modules/facebook/server/facebook.service');
 var twitter = require('modules/core/server/twitter.service');
@@ -53,33 +54,29 @@ exports.create = function (req, res) {
     });
   }
 
+  var account = null;
+
   req.network.verifier = req.body.verifier;
   Network.update(
       {userId: req.network.userId, provider: req.network.provider},
       {$PUT: {verifier: req.body.verifier, status: 1}})
     .then(function(){
-      console.log('[network] get access token: ', req.network.token);
-      return oauth.getAccessToken(
+      return oauthService.getAccessToken(
           req.network.token,
           req.network.provider,
           req.network.tokenSecret,
           req.body.verifier);
     })
     .then(function(access){
-      console.log('[network] save access token: ', access);
-      return req.network.saveAccessToken(access);
-//      return Network.update(
-//        {userId: req.network.userId, provider: req.network.provider},
-//        {$PUT: { accessToken: access.accessToken,
-//                 refreshToken: access.refreshToken,
-//                 accessSecret: access.accessSecret,
-//                 identifier: access.identifier,
-//                 handle: access.handle,
-//                 status: 1}});
+      return Promise.join(
+          Network.saveIdentity(req.network.userId, req.network.provider, access),
+          OAuth.saveAccessToken(req.network.userId, req.network.provider, access)
+          );
     })
-    .then(function(network){
-      console.log('network:::', network);
-      return network.getUser();
+    .then(function(result){
+      console.log('res:',result);
+      account = result[1];
+      return Network.getUser(req.network, result[1]);
     })
     .then(function(data){
       console.log('user: ', data);
@@ -89,7 +86,7 @@ exports.create = function (req, res) {
                  url: data.url}});
     })
     .then(function(data){
-       return data.getReach();
+       return Network.getReach(data, account);
     })
     .then(function(data) {
       var userreach = new UserReach({userId: req.network.userId, provider: req.network.provider, value: data});
@@ -97,7 +94,6 @@ exports.create = function (req, res) {
       return userreach.save();
     })
     .then(function(data){
-      console.log('[network] done');
       res.json(req.network.toJsonSafe());
     })
     .catch(function(err){
@@ -118,12 +114,13 @@ exports.create = function (req, res) {
  */
 exports.readAccount = function (req, res) {
   console.log('[Network] ctrl: read account info');
-  Network.get({userId: req.userId, provider: req.provider})
-    .then(function(data){
-      return data.getUser();
+  Promise.join(
+      Network.get({userId: req.userId, provider: req.provider}),
+      OAuth.getAccessToken(req.userId, req.provider),
+      function(data, account){
+      return Network.getUser(data, account);
     })
     .then(function(data){
-      console.log(data);
       res.json(data);
     })
     .catch(function(err){
@@ -136,18 +133,20 @@ exports.readAccount = function (req, res) {
  */
 exports.updateAccount = function (req, res) {
   console.log('[Network] ctrl: update account info');
-  Network.get({userId: req.userId, provider: req.provider})
-    .then(function(data){
-      return data.getUser();
+
+  Promise.join(
+      Network.get({userId: req.userId, provider: req.provider}),
+      OAuth.getAccessToken(req.userId, req.provider),
+      function(data, account){
+      return Network.getUser(data, account);
     })
-    .then(function(data){
+   .then(function(data){
       return Network.update({userId: req.userId, provider: req.provider},
         {$PUT: {identifier: data.identifier,
                  name: data.name,
                  url: data.url}});
     })
     .then(function(data){
-      console.log(data);
       res.json(data);
     })
     .catch(function(err){
@@ -226,7 +225,7 @@ exports.connect = function (req, res) {
   console.log('[network] connect', req.config);
   var url = '';
 
-  oauth.generateAuthURL(req.provider)
+  oauthService.generateAuthURL(req.provider)
     .then(function(item){
       console.log('[network] auth url', item);
       url = item.url;

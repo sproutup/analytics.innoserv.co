@@ -5,9 +5,10 @@ var Promise = require('bluebird');
 var _ = require('lodash');
 var OAuth = require('oauth');
 var dynamoose = require('dynamoose');
-var OauthModel = dynamoose.model('Oauth');
+//var OAuthModel = dynamoose.model('oauth');
 var querystring = require('querystring');
 var crypto = require('crypto');
+var moment = require('moment');
 
 Promise.promisifyAll(OAuth, {multiArgs: true});
 
@@ -89,6 +90,7 @@ OAuthService.getAccessToken = function (token, provider, tokenSecret, verifier) 
     identifier: '',
     handle: '',
     refreshToken: null,
+    expires: null,
     accessToken: null,
     accessSecret: null
   };
@@ -101,6 +103,7 @@ OAuthService.getAccessToken = function (token, provider, tokenSecret, verifier) 
          .then(function(response){
           result.accessToken = response[0];
           result.refreshToken = response[1];
+          result.expires = moment().add(response[2].expires_in, 's').valueOf();
           return result;
         });
     case 'yt':
@@ -108,8 +111,10 @@ OAuthService.getAccessToken = function (token, provider, tokenSecret, verifier) 
       config.google.tokenSecret = tokenSecret;
       return OAuth2.getAccessToken(token, config.google)
          .then(function(response){
+           console.log(response);
           result.accessToken = response[0];
           result.refreshToken = response[1];
+          result.expires = moment().add(response[2].expires_in, 's').valueOf();
           return result;
         });
     case 'fb':
@@ -158,28 +163,23 @@ OAuthService.getAccessToken = function (token, provider, tokenSecret, verifier) 
       return Promise.reject('Invalid provider');
   }
 };
-
+/*
 OAuthService.saveAccessToken = function (userId, provider, accessToken, refreshToken){
   console.log('[oauth] save access token for: ', provider);
 
-  return OauthModel.create({
-    userId: 4,
-    provider: 'test'
-   });
+  var item = new OAuthModel();
 
-//  var item = new OauthModel();
-//
-//  item.userId = userId;
-//  item.provider = provider;
-//  item.accessToken = accessToken;
-//  item.refreshToken = refreshToken;
-//  item.status = 1;
-//
-//  return item.save();
+  item.userId = userId;
+  item.provider = provider;
+  item.accessToken = accessToken;
+  item.refreshToken = refreshToken;
+  item.status = 1;
+
+  return item.save();
 };
-
+*/
 OAuthService.refreshAccessToken = function (refreshToken, provider, tokenSecret, verifier) {
-  console.log('[oauth] refresh access token for: ', provider);
+  console.log('[oauth] refresh access token for: ', provider, refreshToken);
   if (_.isUndefined(provider)) {
     return Promise.reject('Invalid provider');
   }
@@ -189,21 +189,19 @@ OAuthService.refreshAccessToken = function (refreshToken, provider, tokenSecret,
     provider: provider
   };
   var result = {
-    identifier: '',
-    handle: '',
-    refreshToken: null,
     accessToken: null,
+    expires: null,
     accessSecret: null
   };
 
   switch(provider){
-    case 'ga':
+    case 'google':
       config.google.verifier = verifier;
       config.google.tokenSecret = tokenSecret;
       return OAuth2.refreshAccessToken(refreshToken, config.google)
          .then(function(response){
-//          console.log(response);
           result.accessToken = response[0];
+          result.expires = moment().add(response[2].expires_in, 's').valueOf();
           return result;
         });
     case 'yt':
@@ -213,6 +211,7 @@ OAuthService.refreshAccessToken = function (refreshToken, provider, tokenSecret,
          .then(function(response){
 //          console.log(response);
           result.accessToken = response[0];
+          result.expires = moment().add(response[2].expires_in, 's').valueOf();
           return result;
         });
     default:
@@ -301,9 +300,6 @@ OAuth1.getAccessToken = function(token, params){
       'HMAC-SHA1');
 
   oauth1.setClientOptions({});
-
-  console.log('[oauth1] token:', token);
-  console.log('[oauth1] params:', params);
 
   return oauth1.getOAuthAccessTokenAsync(token, params.tokenSecret, params.verifier)
     .then(function(res){

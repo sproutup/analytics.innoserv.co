@@ -43,21 +43,21 @@ PinterestService.init = function(){
 };
 
 PinterestService.showUser = function(id, token){
-  console.log('showUser:', id);
   var options = {
     uri: 'https://api.pinterest.com/v1/users/' + id,
     qs: {access_token: token, fields: 'id,url,username,first_name,last_name,counts'},
     json: true
   };
-  console.log('options:', options);
+//  console.log('options:', options);
   return request(options).then(function(response){
+    console.log(response);
     var user = {
       id: response.data.id,
-      followers: response.data.counts.followed_by,
-      friends: response.data.counts.follows,
-      statuses: response.data.counts.media
+      followers: response.data.counts.followers,
+      friends: response.data.counts.following,
+      statuses: response.data.counts.pins
     };
-    console.log('updating instagram stats: ', user);
+    console.log('received pinterest data: ', user);
 //      redis.hmset('twitter:user:'+id, user);
     return response.data;
   })

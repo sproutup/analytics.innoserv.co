@@ -4,30 +4,31 @@
  * Module dependencies.
  */
 
-//var dynamooselib = require('config/lib/dynamoose');
-//dynamooselib.loadModels();
+var dynamooselib = require('config/lib/dynamoose');
+dynamooselib.loadModels();
 
 var should = require('should'),
   dynamoose = require('dynamoose'),
-  Network = dynamoose.model('Network');
+  Oauth = dynamoose.model('oauth'),
+  OAuthService = require('modules/oauth/server/oauth.service.js');
 
 /**
  * Globals
  */
-var network, network2;
+var oauth1, oauth2;
 
 /**
  * Unit tests
  */
-describe('Network Model Unit Tests:', function () {
+describe('OAuth Service Unit Tests:', function () {
   before(function () {
-    network = {
+    oauth1 = {
       userId: '1234',
       provider: 'fb',
-      token: 'token',
+      accessToken: 'token',
       status: 1
     };
-    network2 = {
+    oauth2 = {
       firstName: 'Full',
       lastName: 'Name',
       displayName: 'Full Name',
@@ -39,25 +40,28 @@ describe('Network Model Unit Tests:', function () {
   });
 
   describe('Method Save', function () {
-    it('should begin with no networks', function (done) {
-      Network.scan({}, function (err, networks) {
-        networks.should.have.length(0);
+
+    it('should begin with no oauths', function (done) {
+      Oauth.scan({}, function (err, oauths) {
+        oauths.should.have.length(0);
         done();
       });
     });
 
     it('should be able to save without problems', function (done) {
-      var _network = new Network(network);
-      _network.save(function (err) {
-        should.not.exist(err);
-        _network.delete(function (err) {
-          should.not.exist(err);
-          done();
-        });
-      });
-    });
-  });
+      var _oauth = new Oauth(oauth1);
 
+      OAuthService.saveAccessToken(oauth1.userId, oauth1.provider, oauth1.accessToken, 'test')
+        .then(function(result){
+          should.exist(result);
+          _oauth.delete(function (err) {
+            should.not.exist(err);
+            done();
+          });
+        });
+    });
+
+  });
 /*
     it('should fail to save an existing user again', function (done) {
       var _user = new User(user);
@@ -404,11 +408,8 @@ describe('Network Model Unit Tests:', function () {
   });
 */
   after(function (done) {
-//    Network.$__.table.delete(function(err){
+    Oauth.$__.table.delete(function(err){
       done();
-//    });
-//    User.delete().exec(done);
-//    dynamoose.models.User.delete('testUser');
-//    done();
+    });
   });
 });

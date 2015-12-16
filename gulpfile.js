@@ -13,6 +13,13 @@ var _ = require('lodash'),
   plugins = gulpLoadPlugins(),
   path = require('path');
 
+
+// Handles errors and does not break out of our tests.
+function handleError(err) {
+  console.log(err.toString());
+  this.emit('end');
+}
+
 // Set NODE_ENV to 'test'
 gulp.task('env:test', function () {
   process.env.NODE_ENV = 'test';
@@ -139,23 +146,23 @@ gulp.task('mocha', function (done) {
   require('app-module-path').addPath(__dirname);
   var dynamoose = require('./config/lib/dynamoose.js');
   dynamoose.loadModels();
-  var error;
+//  var error;
 
   // Run the tests
-  gulp.src(['modules/network/tests/server/network.model.tests.js'], { read: false })
-//  gulp.src(testAssets.tests.server)
-    .pipe(debug({title: 'mocha:'}))
+    return gulp.src(['modules/network/tests/server/network.*.tests.js']) //, { read: false })
+//    return gulp.src(testAssets.tests.server)
+    .pipe(debug({title: 'mocha->'}))
     .pipe(plugins.mocha({
       reporter: 'spec'
     }))
-    .on('error', function (err) {
+    .on('error', handleError);
       // If an error occurs, save it
-      error = err;
-    })
-    .on('end', function() {
+//      error = err;
+//    })
+//    .on('end', function() {
       // When the tests are done, disconnect mongoose and pass the error state back to gulp
-      done(error);
-    });
+//      done(error);
+//    });
 
 });
 
@@ -185,7 +192,7 @@ gulp.task('protractor', function () {
 
 // Lint CSS and JavaScript files.
 gulp.task('lint', function(done) {
-  runSequence('less', ['csslint', 'jshint'], done);
+  return runSequence('less', ['csslint', 'jshint'], done);
 });
 
 // Lint project files and minify them into two production files.
@@ -194,7 +201,8 @@ gulp.task('build', function(done) {
 });
 
 gulp.task('watchtest', function(done) {
-  gulp.watch(defaultAssets.server.allJS, ['test:server']);
+  gulp.watch(defaultAssets.server.allJS, ['mocha']);
+  gulp.watch(testAssets.tests.server, ['mocha']);
 });
 
 // Run the project tests
@@ -203,12 +211,14 @@ gulp.task('test', function(done) {
   runSequence('env:test', ['mocha'], done);
 });
 
-gulp.task('test:server', function (done) {
-    runSequence('env:test', 'lint', 'mocha', ['watchtest'], done);
+gulp.task('tester', ['env:test', 'lint', 'mocha', 'watchtest']);
+
+gulp.task('test:server', function () {
+  runSequence('env:test', 'lint', ['mocha', 'watchtest']);
 });
 
 gulp.task('test:client', function (done) {
-    runSequence('env:test', 'lint', 'karma', done);
+  runSequence('env:test', 'lint', 'karma', done);
 });
 
 // Run the project in development mode

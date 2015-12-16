@@ -3,31 +3,31 @@
 /**
  * Module dependencies.
  */
-
-//var dynamooselib = require('config/lib/dynamoose');
-//dynamooselib.loadModels();
+//require('app-module-path').addPath(__dirname);
+require('config/lib/dynamoose').loadModels();
 
 var should = require('should'),
   dynamoose = require('dynamoose'),
-  Network = dynamoose.model('Network');
+  OAuth = dynamoose.model('oauth');
 
 /**
  * Globals
  */
-var network, network2;
+var oauth1, oauth2;
 
 /**
  * Unit tests
  */
-describe('Network Model Unit Tests:', function () {
+describe('OAuth Model Unit Tests:', function () {
+
+  this.timeout(5000);
+
   before(function () {
-    network = {
-      userId: '1234',
-      provider: 'fb',
-      token: 'token',
-      status: 1
+    oauth1 = {
+      userId: 1,
+      provider: 'fb'
     };
-    network2 = {
+    oauth2 = {
       firstName: 'Full',
       lastName: 'Name',
       displayName: 'Full Name',
@@ -39,24 +39,62 @@ describe('Network Model Unit Tests:', function () {
   });
 
   describe('Method Save', function () {
-    it('should begin with no networks', function (done) {
-      Network.scan({}, function (err, networks) {
-        networks.should.have.length(0);
+    it('Check model with range key', function () {
+
+      OAuth.should.have.property('$__');
+
+      OAuth.$__.name.should.eql('test_oauth');
+      OAuth.$__.options.should.have.property('create', true);
+
+
+      var schema = OAuth.$__.schema;
+
+      should.exist(schema);
+
+      schema.attributes.userId.type.name.should.eql('number');
+      should(schema.attributes.userId.isSet).not.be.ok();
+      should.not.exist(schema.attributes.userId.default);
+      should.not.exist(schema.attributes.userId.validator);
+      should(schema.attributes.userId.required).not.be.ok();
+
+      schema.attributes.provider.type.name.should.eql('string');
+      schema.attributes.provider.isSet.should.not.be.ok();
+      should.not.exist(schema.attributes.provider.default);
+      should.not.exist(schema.attributes.provider.validator);
+      should(schema.attributes.provider.required).not.be.ok();
+
+      schema.hashKey.should.equal(schema.attributes.userId); // should be same object
+      schema.rangeKey.should.equal(schema.attributes.provider);
+    });
+
+    it('should begin with no oauths', function (done) {
+      OAuth.scan({}, function (err, oauths) {
+        oauths.should.have.length(0);
         done();
       });
     });
 
     it('should be able to save without problems', function (done) {
-      var _network = new Network(network);
-      _network.save(function (err) {
+      //var _oauth = new OAuth(oauth1);
+      OAuth.create({userId: 1, provider: 'garfield'}, function(err, data) {
         should.not.exist(err);
-        _network.delete(function (err) {
+        data.delete(function (err) {
           should.not.exist(err);
           done();
         });
       });
     });
+
   });
+
+  after(function (done) {
+    OAuth.$__.table.delete(function(err){
+      done();
+    });
+  });
+});
+
+
 
 /*
     it('should fail to save an existing user again', function (done) {
@@ -403,12 +441,4 @@ describe('Network Model Unit Tests:', function () {
 
   });
 */
-  after(function (done) {
-//    Network.$__.table.delete(function(err){
-      done();
-//    });
-//    User.delete().exec(done);
-//    dynamoose.models.User.delete('testUser');
-//    done();
-  });
-});
+

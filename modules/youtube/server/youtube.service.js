@@ -53,7 +53,7 @@ YoutubeService.showUser = function(id, token){
     },
     json: true
   };
-  console.log('options:', options);
+  
   return request(options).then(function(response){
 /*    var user = {
       id: response.data.id,
@@ -61,7 +61,7 @@ YoutubeService.showUser = function(id, token){
       friends: response.data.counts.follows,
       statuses: response.data.counts.media
     };*/
-    console.log('updating youtube stats: ', response.items);
+//    console.log('updating youtube stats: ', response.items);
 //      redis.hmset('twitter:user:'+id, user);
     return response.items[0];
   })
