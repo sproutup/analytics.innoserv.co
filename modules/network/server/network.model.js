@@ -223,12 +223,12 @@ NetworkSchema.statics.getReach = Promise.method(function(network, oauth){
           return data.statistics.subscriberCount;
         });
       case 'ig':
-        return instagram.showUser('self', network.accessToken).then(function(data){
+        return instagram.showUser('self', oauth.accessToken).then(function(data){
           console.log('show user: ', data);
           return data.counts.followed_by;
         });
       case 'pi':
-        return pinterest.showUser('me', network.accessToken).then(function(data){
+        return pinterest.showUser('me', oauth.accessToken).then(function(data){
           console.log('show user: ', data);
           return data.counts.followers;
         });
