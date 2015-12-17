@@ -215,7 +215,7 @@ NetworkSchema.statics.getReach = Promise.method(function(network, oauth){
         return googleAnalytics.getReach(network.identifier, oauth.accessToken)
           .then(function(data){
             console.log('show reach: ', data);
-            return data[0]/3;
+            return Math.ceil(data[0]/3);
           });
       case 'yt':
         return youtube.showUser('self', oauth.accessToken).then(function(data){

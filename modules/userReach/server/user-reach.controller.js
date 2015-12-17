@@ -8,6 +8,8 @@ var dynamoose = require('dynamoose');
 var _ = require('lodash');
 var UserReach = dynamoose.model('UserReach');
 var Network = dynamoose.model('Network');
+var OAuth = dynamoose.model('oauth');
+var Promise = require('bluebird');
 
 /**
  * Create
@@ -65,11 +67,14 @@ exports.read = function (req, res) {
  * Update
  */
 exports.update = function (req, res) {
-  Network.get({userId: req.userId, provider: req.provider})
-    .then(function(data) {
-      return data.getReach();
+  
+  Promise.join(
+      Network.get({userId: req.userId, provider: req.provider}),
+      OAuth.getAccessToken(req.userId, req.provider),
+      function(data, account){
+      return Network.getReach(data, account);
     })
-    .then(function(data) {
+   .then(function(data) {
       var userreach = new UserReach({userId: req.userId, provider: req.provider, value: data});
       console.log(userreach);
       return userreach.save();
