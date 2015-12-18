@@ -296,6 +296,7 @@ exports.readStats = function (req, res) {
  * Add all to queue
  */
 exports.init = function (req, res) {
+  console.log('init network queue');
   var provider = req.params.provider;
   var q = new Queue('queue:network:' + provider);
   return q.clear()
@@ -303,12 +304,16 @@ exports.init = function (req, res) {
       return q.last();
     })
     .then(function(data){
-      Network.query({provider: provider}).exec();
+      return Network.scan({'provider': {eq: provider}}).exec();
     })
     .then(function(val){
       if(val.length>0){
-        return q.add(val);
+        _.forEach(val, function(n, key){
+          console.log(n,key);
+          q.add(n.userId);
+        });
       }
+      return q.list();
     })
     .then(function(result){
       console.log(result);
@@ -316,6 +321,19 @@ exports.init = function (req, res) {
     });
 };
 
+/**
+ * Process next item in queue
+ */
+exports.next = function (req, res) {
+  var provider = req.params.provider;
+  var q = new Queue('queue:network:' + provider);
+  return q.next().then(function(val){
+    return UserReach.refresh(parseInt(val), provider);
+  })
+  .then(function(val){
+    return res.json({res: val});
+  });
+};
 
 /**
  * Middleware

@@ -67,7 +67,7 @@ exports.read = function (req, res) {
  * Update
  */
 exports.update = function (req, res) {
-  
+
   Promise.join(
       Network.get({userId: req.userId, provider: req.provider}),
       OAuth.getAccessToken(req.userId, req.provider),

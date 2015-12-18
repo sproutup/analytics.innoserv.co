@@ -26,6 +26,14 @@ module.exports = function (app) {
   app.route('/api/user/:userId/network')
     .get(controller.list);
 
+  // Collection routes
+  app.route('/api/network/:provider/init')
+    .get(controller.init);
+
+  // Collection routes
+  app.route('/api/network/:provider/next')
+    .get(controller.next);
+
   // Single network routes
   app.route('/api/user/:userId/network/:provider')
     .post(controller.connect)
