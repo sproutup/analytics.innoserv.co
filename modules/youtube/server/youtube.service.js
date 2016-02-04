@@ -71,4 +71,29 @@ YoutubeService.showUser = function(id, token){
   });
 };
 
+
+YoutubeService.search = function(token, part, maxResults){
+  console.log('showVideos');
+  var options = {
+    uri: 'https://www.googleapis.com/youtube/v3/search',
+    qs: {
+      access_token: token,
+      part: 'id,snippet',
+      type: 'video',
+      forMine: true,
+      maxResults: maxResults
+    },
+    json: true
+  };
+
+  return request(options).then(function(response){
+    return response;
+  })
+  .catch(function(err){
+    console.log('Error: ', err);
+    return {err: err};
+  });
+};
+
+
 module.exports = YoutubeService;
