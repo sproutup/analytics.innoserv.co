@@ -51,6 +51,6 @@ module.exports = {
       max: 10
     }
   },
-  livereload: true,
+  livereload: false,
   seedDB: process.env.MONGO_SEED || false
 };
